@@ -1,4 +1,4 @@
-const CACHE_NAME = 'moyers-v1';
+const CACHE_NAME = 'moyers-v2';
 const arquivos = [
   './',
   './index.html',
