@@ -1,0 +1,192 @@
+<<!DOCTYPE html>
+    <html lang="pt-BR">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Análise de Moyers</title>
+
+        <!-- Link para o instalador do PWA que criamos -->
+        <link rel="manifest" href="manifest.json">
+
+        <style>
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background-color: #f8f9fa;
+                color: #333;
+                margin: 0;
+                padding: 20px;
+                display: flex;
+                justify-content: center;
+            }
+
+            .container {
+                background-color: white;
+                padding: 25px;
+                border-radius: 12px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+                max-width: 400px;
+                width: 100%;
+            }
+
+            h2 {
+                text-align: center;
+                color: #2c3e50;
+                margin-bottom: 20px;
+            }
+
+            label {
+                font-weight: bold;
+                display: block;
+                margin-top: 15px;
+                font-size: 14px;
+            }
+
+            input,
+            select {
+                width: 100%;
+                padding: 10px;
+                margin-top: 5px;
+                border: 1px solid #ccc;
+                border-radius: 6px;
+                box-sizing: border-box;
+                font-size: 16px;
+            }
+
+            button {
+                width: 100%;
+                padding: 12px;
+                background-color: blue;
+                /* Botão azul conforme você pediu */
+                color: white;
+                border: none;
+                border-radius: 6px;
+                font-size: 16px;
+                font-weight: bold;
+                margin-top: 25px;
+                cursor: pointer;
+            }
+
+            button:active {
+                background-color: darkblue;
+            }
+
+            .resultado {
+                margin-top: 20px;
+                padding: 15px;
+                border-radius: 6px;
+                background-color: #e8f4fd;
+                display: none;
+            }
+
+            .positivo {
+                color: #27ae60;
+                font-weight: bold;
+            }
+
+            .negativo {
+                color: #e74c3c;
+                font-weight: bold;
+            }
+        </style>
+    </head>
+
+    <body>
+
+        <div class="container">
+            <h2>🦷 OrthoCalculator </h2>
+            <h3> Calcule a discrepância de modelo: </h3>
+
+            <!-- Regra de Ouro do Moyers: A predição sempre nasce dos incisivos inferiores -->
+            <label>Soma dos Incisivos Inferiores (mm):</label>
+            <input type="number" id="incInfBase" placeholder="Ex: 22.5" step="0.1" oninput="espelharInferiores()">
+
+            <label>Qual arcada deseja analisar?</label>
+            <select id="arcadaAnalisada" onchange="espelharInferiores()">
+                <option value="superior">Arcada Superior</option>
+                <option value="inferior">Arcada Inferior</option>
+            </select>
+
+            <label>Soma dos Incisivos da Arcada Avaliada (mm):</label>
+            <input type="number" id="incAvaliada" placeholder="Ex: 30.0" step="0.1">
+
+            <label>Espaço Presente Total na Arcada (mm):</label>
+            <input type="number" id="espPresente" placeholder="Ex: 75.0" step="0.1">
+
+            <button onclick="calcularMoyers()">Calcular Discrepância</button>
+
+            <div id="caixaResultado" class="resultado">
+                <h3 style="margin-top: 0; text-align: center;">Resultado</h3>
+                <p>Previsão (C + PMs) por quadrante: <span id="resPrevisao"></span></p>
+                <p>Espaço Requerido Total: <span id="resRequerido"></span></p>
+                <p>Espaço Presente: <span id="resPresente"></span></p>
+                <hr>
+                <p id="resDiscrepancia"></p>
+            </div>
+        </div>
+
+        <script>
+            // Função para automatizar o preenchimento se a arcada analisada for a inferior
+            function espelharInferiores() {
+                let incInfBase = document.getElementById('incInfBase').value;
+                let arcada = document.getElementById('arcadaAnalisada').value;
+                let campoAvaliada = document.getElementById('incAvaliada');
+
+                if (arcada === 'inferior' && incInfBase !== '') {
+                    campoAvaliada.value = incInfBase;
+                    campoAvaliada.style.backgroundColor = '#f0f0f0'; // Destaca visualmente que foi automatizado
+                } else {
+                    campoAvaliada.style.backgroundColor = 'white';
+                }
+            }
+
+            function calcularMoyers() {
+                let infBase = parseFloat(document.getElementById('incInfBase').value);
+                let incAvaliada = parseFloat(document.getElementById('incAvaliada').value);
+                let presente = parseFloat(document.getElementById('espPresente').value);
+                let arcada = document.getElementById('arcadaAnalisada').value;
+
+                if (isNaN(infBase) || isNaN(incAvaliada) || isNaN(presente)) {
+                    alert("Por favor, preencha todos os campos numéricos.");
+                    return;
+                }
+
+                let previsaoQuadrante = 0;
+
+                // Equações de regressão para o percentil 75%
+                if (arcada === 'superior') {
+                    previsaoQuadrante = (0.32 * infBase) + 12.63;
+                } else {
+                    previsaoQuadrante = (0.37 * infBase) + 11.81;
+                }
+
+                // Cálculo Total: Soma dos incisivos da arcada + (previsão de 1 quadrante * 2)
+                let requeridoTotal = incAvaliada + (previsaoQuadrante * 2);
+                let discrepancia = presente - requeridoTotal;
+
+                // Injetando no HTML
+                document.getElementById('resPrevisao').innerText = previsaoQuadrante.toFixed(1) + " mm";
+                document.getElementById('resRequerido').innerText = requeridoTotal.toFixed(1) + " mm";
+                document.getElementById('resPresente').innerText = presente.toFixed(1) + " mm";
+
+                let textoDiscrepancia = document.getElementById('resDiscrepancia');
+                if (discrepancia > 0) {
+                    textoDiscrepancia.innerHTML = `Discrepância: <span class="positivo">+${discrepancia.toFixed(1)} mm (Sobrando)</span>`;
+                } else if (discrepancia < 0) {
+                    textoDiscrepancia.innerHTML = `Discrepância: <span class="negativo">${discrepancia.toFixed(1)} mm (Faltando)</span>`;
+                } else {
+                    textoDiscrepancia.innerHTML = `Discrepância: 0.0 mm (Exato)`;
+                }
+
+                document.getElementById('caixaResultado').style.display = 'block';
+            }
+        </script>
+        <script>
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('./sw.js');
+            }
+        </script>
+
+    </body>
+
+    </html>
