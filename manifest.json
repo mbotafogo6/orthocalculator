@@ -1,6 +1,6 @@
 {
   "name": "OrthoCalculator",
-  "short_name": "Orthoapp",
+  "short_name": "OrthoCalculator",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
