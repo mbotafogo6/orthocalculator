@@ -1,192 +1,177 @@
 <!DOCTYPE html>
-    <html lang="pt-BR">
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orthoapp</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="orthologo.png">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f4f8; margin: 0; padding: 15px; display: flex; justify-content: center; }
+    .card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 420px; }
+    h2 { text-align: center; color: #1a365d; margin-bottom: 15px; }
+    .nav-tabs { display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; }
+    .tab-btn { flex: 1; padding: 10px; border: none; background: #e2e8f0; color: #4a5568; font-weight: bold; border-radius: 8px 8px 0 0; cursor: pointer; }
+    .tab-btn.active { background: #2b6cb0; color: white; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    label { display: block; margin-top: 10px; font-weight: 600; color: #2d3748; }
+    input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+    button.calc-btn { width: 100%; padding: 12px; background: #2b6cb0; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; margin-top: 15px; cursor: pointer; }
+    .result-box { margin-top: 15px; padding: 12px; background: #edf2f7; border-radius: 6px; font-size: 14px; color: #2d3748; }
+  </style>
+</head>
+<body>
 
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>OrthoCalculator</title>
+<div class="card">
+  <h2>Orthoapp</h2>
 
-        <!-- Link para o instalador do PWA que criamos -->
-        <link rel="manifest" href="manifest.json">
-        <link rel="apple-touch-icon" href="orthologo.png">
-        <style>
-            body {
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                background-color: #f8f9fa;
-                color: #333;
-                margin: 0;
-                padding: 20px;
-                display: flex;
-                justify-content: center;
-            }
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('moyers')">Moyers</button>
+    <button class="tab-btn" onclick="switchTab('bolton')">Bolton</button>
+  </div>
 
-            .container {
-                background-color: white;
-                padding: 25px;
-                border-radius: 12px;
-                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-                max-width: 400px;
-                width: 100%;
-            }
+  <!-- ABA MOYERS -->
+  <div id="moyers" class="tab-content active">
+    <label for="sexo">Sexo do Paciente:</label>
+    <select id="sexo">
+      <option value="masculino">Masculino</option>
+      <option value="feminino">Feminino</option>
+    </select>
 
-            h2 {
-                text-align: center;
-                color: #2c3e50;
-                margin-bottom: 20px;
-            }
+    <label for="somaInc">Soma dos Incisivos Inferiores (mm):</label>
+    <input type="number" id="somaInc" step="0.1" placeholder="Ex: 22.5">
 
-            label {
-                font-weight: bold;
-                display: block;
-                margin-top: 15px;
-                font-size: 14px;
-            }
+    <label for="espacoSup">Espaço Presente Superior (mm):</label>
+    <input type="number" id="espacoSup" step="0.1" placeholder="Ex: 23.0">
 
-            input,
-            select {
-                width: 100%;
-                padding: 10px;
-                margin-top: 5px;
-                border: 1px solid #ccc;
-                border-radius: 6px;
-                box-sizing: border-box;
-                font-size: 16px;
-            }
+    <label for="espacoInf">Espaço Presente Inferior (mm):</label>
+    <input type="number" id="espacoInf" step="0.1" placeholder="Ex: 21.5">
 
-            button {
-                width: 100%;
-                padding: 12px;
-                background-color: blue;
-                /* Botão azul conforme você pediu */
-                color: white;
-                border: none;
-                border-radius: 6px;
-                font-size: 16px;
-                font-weight: bold;
-                margin-top: 25px;
-                cursor: pointer;
-            }
+    <button class="calc-btn" onclick="calcularMoyers()">Calcular Moyers</button>
 
-            button:active {
-                background-color: darkblue;
-            }
+    <div id="resMoyers" class="result-box" style="display:none;"></div>
+  </div>
 
-            .resultado {
-                margin-top: 20px;
-                padding: 15px;
-                border-radius: 6px;
-                background-color: #e8f4fd;
-                display: none;
-            }
+  <!-- ABA BOLTON -->
+  <div id="bolton" class="tab-content">
+    <label for="antSup">Soma 6 Dentes Anteriores Superiores (mm):</label>
+    <input type="number" id="antSup" step="0.1" placeholder="Canino a Canino">
 
-            .positivo {
-                color: #27ae60;
-                font-weight: bold;
-            }
+    <label for="antInf">Soma 6 Dentes Anteriores Inferiores (mm):</label>
+    <input type="number" id="antInf" step="0.1" placeholder="Canino a Canino">
 
-            .negativo {
-                color: #e74c3c;
-                font-weight: bold;
-            }
-        </style>
-    </head>
+    <label for="totSup">Soma 12 Dentes Superiores (mm):</label>
+    <input type="number" id="totSup" step="0.1" placeholder="1º Molar a 1º Molar">
 
-    <body>
+    <label for="totInf">Soma 12 Dentes Inferiores (mm):</label>
+    <input type="number" id="totInf" step="0.1" placeholder="1º Molar a 1º Molar">
 
-        <div class="container">
-            <h2>🦷 OrthoCalculator </h2>
-            <h3> Calcule a discrepância de modelo: </h3>
+    <button class="calc-btn" onclick="calcularBolton()">Calcular Bolton</button>
 
-            <!-- Regra de Ouro do Moyers: A predição sempre nasce dos incisivos inferiores -->
-            <label>Soma dos Incisivos Inferiores (mm):</label>
-            <input type="number" id="incInfBase" placeholder="Ex: 22.5" step="0.1" oninput="espelharInferiores()">
+    <div id="resBolton" class="result-box" style="display:none;"></div>
+  </div>
+</div>
 
-            <label>Qual arcada deseja analisar?</label>
-            <select id="arcadaAnalisada" onchange="espelharInferiores()">
-                <option value="superior">Arcada Superior</option>
-                <option value="inferior">Arcada Inferior</option>
-            </select>
+<script>
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    event.currentTarget.classList.add('active');
+  }
 
-            <label>Soma dos Incisivos da Arcada Avaliada (mm):</label>
-            <input type="number" id="incAvaliada" placeholder="Ex: 30.0" step="0.1">
+  const tabelaMoyers75 = {
+    masculino: {
+      maxilar: { 19.5: 20.6, 20.0: 20.9, 20.5: 21.2, 21.0: 21.5, 21.5: 21.8, 22.0: 22.0, 22.5: 22.3, 23.0: 22.6, 23.5: 22.9, 24.0: 23.2, 24.5: 23.5, 25.0: 23.8, 25.5: 24.1, 26.0: 24.4, 26.5: 24.7, 27.0: 25.0 },
+      mandibula: { 19.5: 20.1, 20.0: 20.4, 20.5: 20.7, 21.0: 21.0, 21.5: 21.3, 22.0: 21.6, 22.5: 21.9, 23.0: 22.2, 23.5: 22.5, 24.0: 22.8, 24.5: 23.1, 25.0: 23.4, 25.5: 23.7, 26.0: 24.0, 26.5: 24.3, 27.0: 24.6 }
+    },
+    feminino: {
+      maxilar: { 19.5: 20.1, 20.0: 20.4, 20.5: 20.7, 21.0: 21.0, 21.5: 21.3, 22.0: 21.5, 22.5: 21.8, 23.0: 22.1, 23.5: 22.4, 24.0: 22.7, 24.5: 23.0, 25.0: 23.3, 25.5: 23.6, 26.0: 23.9, 26.5: 24.2, 27.0: 24.5 },
+      mandibula: { 19.5: 19.6, 20.0: 19.9, 20.5: 20.2, 21.0: 20.5, 21.5: 20.8, 22.0: 21.1, 22.5: 21.4, 23.0: 21.7, 23.5: 22.0, 24.0: 22.3, 24.5: 22.6, 25.0: 22.9, 25.5: 23.2, 26.0: 23.5, 26.5: 23.8, 27.0: 24.1 }
+    }
+  };
 
-            <label>Espaço Presente Total na Arcada (mm):</label>
-            <input type="number" id="espPresente" placeholder="Ex: 75.0" step="0.1">
+  function calcularMoyers() {
+    const sexo = document.getElementById('sexo').value;
+    const somaInc = parseFloat(document.getElementById('somaInc').value);
+    const espSup = parseFloat(document.getElementById('espacoSup').value);
+    const espInf = parseFloat(document.getElementById('espacoInf').value);
 
-            <button onclick="calcularMoyers()">Calcular Discrepância</button>
+    if (!somaInc || somaInc < 19.5 || somaInc > 27.0) {
+      alert("Por favor, insira um valor para a soma dos incisivos entre 19.5 mm e 27.0 mm.");
+      return;
+    }
 
-            <div id="caixaResultado" class="resultado">
-                <h3 style="margin-top: 0; text-align: center;">Resultado</h3>
-                <p>Previsão (C + PMs) por quadrante: <span id="resPrevisao"></span></p>
-                <p>Espaço Requerido Total: <span id="resRequerido"></span></p>
-                <p>Espaço Presente: <span id="resPresente"></span></p>
-                <hr>
-                <p id="resDiscrepancia"></p>
-            </div>
-        </div>
+    const valorArredondado = (Math.round(somaInc * 2) / 2).toFixed(1);
+    const necSup = tabelaMoyers75[sexo].maxilar[valorArredondado];
+    const necInf = tabelaMoyers75[sexo].mandibula[valorArredondado];
 
-        <script>
-            // Função para automatizar o preenchimento se a arcada analisada for a inferior
-            function espelharInferiores() {
-                let incInfBase = document.getElementById('incInfBase').value;
-                let arcada = document.getElementById('arcadaAnalisada').value;
-                let campoAvaliada = document.getElementById('incAvaliada');
+    let html = `<strong>Necessidade de Espaço (3, 4, 5):</strong><br>`;
+    html += `Maxilar Superior: <strong>${necSup} mm</strong><br>`;
+    html += `Mandíbula: <strong>${necInf} mm</strong><br><br>`;
 
-                if (arcada === 'inferior' && incInfBase !== '') {
-                    campoAvaliada.value = incInfBase;
-                    campoAvaliada.style.backgroundColor = '#f0f0f0'; // Destaca visualmente que foi automatizado
-                } else {
-                    campoAvaliada.style.backgroundColor = 'white';
-                }
-            }
+    if (!isNaN(espSup)) {
+      const discSup = (espSup - necSup).toFixed(1);
+      html += `Discrepância Superior: <strong>${discSup > 0 ? '+' : ''}${discSup} mm</strong><br>`;
+    }
+    if (!isNaN(espInf)) {
+      const discInf = (espInf - necInf).toFixed(1);
+      html += `Discrepância Inferior: <strong>${discInf > 0 ? '+' : ''}${discInf} mm</strong>`;
+    }
 
-            function calcularMoyers() {
-                let infBase = parseFloat(document.getElementById('incInfBase').value);
-                let incAvaliada = parseFloat(document.getElementById('incAvaliada').value);
-                let presente = parseFloat(document.getElementById('espPresente').value);
-                let arcada = document.getElementById('arcadaAnalisada').value;
+    const res = document.getElementById('resMoyers');
+    res.innerHTML = html;
+    res.style.display = 'block';
+  }
 
-                if (isNaN(infBase) || isNaN(incAvaliada) || isNaN(presente)) {
-                    alert("Por favor, preencha todos os campos numéricos.");
-                    return;
-                }
+  function calcularBolton() {
+    const antSup = parseFloat(document.getElementById('antSup').value);
+    const antInf = parseFloat(document.getElementById('antInf').value);
+    const totSup = parseFloat(document.getElementById('totSup').value);
+    const totInf = parseFloat(document.getElementById('totInf').value);
 
-                let previsaoQuadrante = 0;
+    if (!antSup || !antInf) {
+      alert("Preencha ao menos as somas anteriores (6 dentes).");
+      return;
+    }
 
-                // Equações de regressão para o percentil 75%
-                if (arcada === 'superior') {
-                    previsaoQuadrante = (0.32 * infBase) + 12.63;
-                } else {
-                    previsaoQuadrante = (0.37 * infBase) + 11.81;
-                }
+    let html = '';
+    
+    // Análise Anterior
+    const razAnt = ((antInf / antSup) * 100).toFixed(1);
+    html += `<strong>Razão Anterior: ${razAnt}%</strong> (Ideal: 77.2%)<br>`;
+    if (razAnt > 77.2) {
+      const excessoInf = (antInf - (antSup * 0.772)).toFixed(1);
+      html += `Excesso de massa inferior anterior: <strong>${excessoInf} mm</strong><br>`;
+    } else if (razAnt < 77.2) {
+      const excessoSup = (antSup - (antInf / 0.772)).toFixed(1);
+      html += `Excesso de massa superior anterior: <strong>${excessoSup} mm</strong><br>`;
+    } else {
+      html += `Proporção anterior ideal.<br>`;
+    }
 
-                // Cálculo Total: Soma dos incisivos da arcada + (previsão de 1 quadrante * 2)
-                let requeridoTotal = incAvaliada + (previsaoQuadrante * 2);
-                let discrepancia = presente - requeridoTotal;
+    // Análise Total
+    if (totSup && totInf) {
+      html += `<br>`;
+      const razTot = ((totInf / totSup) * 100).toFixed(1);
+      html += `<strong>Razão Total: ${razTot}%</strong> (Ideal: 91.3%)<br>`;
+      if (razTot > 91.3) {
+        const excessoTotInf = (totInf - (totSup * 0.913)).toFixed(1);
+        html += `Excesso de massa inferior total: <strong>${excessoTotInf} mm</strong>`;
+      } else if (razTot < 91.3) {
+        const excessoTotSup = (totSup - (totInf / 0.913)).toFixed(1);
+        html += `Excesso de massa superior total: <strong>${excessoTotSup} mm</strong>`;
+      } else {
+        html += `Proporção total ideal.`;
+      }
+    }
 
-                // Injetando no HTML
-                document.getElementById('resPrevisao').innerText = previsaoQuadrante.toFixed(1) + " mm";
-                document.getElementById('resRequerido').innerText = requeridoTotal.toFixed(1) + " mm";
-                document.getElementById('resPresente').innerText = presente.toFixed(1) + " mm";
+    const res = document.getElementById('resBolton');
+    res.innerHTML = html;
+    res.style.display = 'block';
+  }
+</script>
 
-                let textoDiscrepancia = document.getElementById('resDiscrepancia');
-                if (discrepancia > 0) {
-                    textoDiscrepancia.innerHTML = `Discrepância: <span class="positivo">+${discrepancia.toFixed(1)} mm (Sobrando)</span>`;
-                } else if (discrepancia < 0) {
-                    textoDiscrepancia.innerHTML = `Discrepância: <span class="negativo">${discrepancia.toFixed(1)} mm (Faltando)</span>`;
-                } else {
-                    textoDiscrepancia.innerHTML = `Discrepância: 0.0 mm (Exato)`;
-                }
-
-                document.getElementById('caixaResultado').style.display = 'block';
-            }
-        </script>
-        <script>
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('./sw.js');
-            }
-        </script>
-
-    </body>
-
-    </html>
+</body>
+</html>
