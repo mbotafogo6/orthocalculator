@@ -31,7 +31,7 @@
     <button class="tab-btn" onclick="switchTab('bolton')">Bolton</button>
   </div>
 
-  <!-- ABA MOYERS -->
+ <!-- ABA MOYERS -->
   <div id="moyers" class="tab-content active">
     <label for="sexo">Sexo do Paciente:</label>
     <select id="sexo">
@@ -39,29 +39,29 @@
       <option value="feminino">Feminino</option>
     </select>
 
-   <label for="sexo">Sexo do Paciente:</label>
-    <select id="sexo">
-      <option value="masculino">Masculino</option>
-      <option value="feminino">Feminino</option>
+    <label for="arcada">Arcada a Analisar:</label>
+    <select id="arcada" onchange="toggleIncisivosSup()">
+      <option value="inferior">Inferior (Mandíbula)</option>
+      <option value="superior">Superior (Maxilar)</option>
     </select>
 
-    <label for="somaIncInf">Soma dos Incisivos INFERIORES (mm):</label>
-    <input type="number" id="somaIncInf" step="0.1" placeholder="Usado para previsão da tabela">
+    <label for="somaIncInf">Soma dos 4 Incisivos Inferiores (mm):</label>
+    <input type="number" id="somaIncInf" step="0.1" placeholder="Usado para consultar a tabela">
 
-    <label for="somaIncSup">Soma dos Incisivos SUPERIORES (mm):</label>
-    <input type="number" id="somaIncSup" step="0.1" placeholder="Para calcular o total superior">
+    <!-- Este campo só é necessário se a arcada Superior for selecionada -->
+    <div id="campoIncSup" style="display: none;">
+      <label for="somaIncSup">Soma dos 4 Incisivos Superiores (mm):</label>
+      <input type="number" id="somaIncSup" step="0.1" placeholder="Para compor o perímetro superior">
+    </div>
 
-    <label for="espacoSup">Perímetro Total Presente SUPERIOR (mm):</label>
-    <input type="number" id="espacoSup" step="0.1" placeholder="De mesial a mesial de 1º molar">
-
-    <label for="espacoInf">Perímetro Total Presente INFERIOR (mm):</label>
-    <input type="number" id="espacoInf" step="0.1" placeholder="De mesial a mesial de 1º molar">
+    <label for="espacoPresente">Perímetro Total Presente na Arcada (mm):</label>
+    <input type="number" id="espacoPresente" step="0.1" placeholder="Medida no modelo de gesso">
 
     <button class="calc-btn" onclick="calcularMoyers()">Calcular Moyers</button>
 
     <div id="resMoyers" class="result-box" style="display:none;"></div>
   </div>
-
+  
   <!-- ABA BOLTON -->
   <div id="bolton" class="tab-content">
     <label for="antSup">Soma 6 Dentes Anteriores Superiores (mm):</label>
@@ -101,57 +101,73 @@
     }
   };
 
- function calcularMoyers() {
+ // Função para mostrar/esconder a soma dos incisivos superiores conforme a arcada selecionada
+  function toggleIncisivosSup() {
+    const arcada = document.getElementById('arcada').value;
+    const campoSup = document.getElementById('campoIncSup');
+    if (arcada === 'superior') {
+      campoSup.style.display = 'block';
+    } else {
+      campoSup.style.display = 'none';
+    }
+  }
+
+  function calcularMoyers() {
     const sexo = document.getElementById('sexo').value;
+    const arcada = document.getElementById('arcada').value; // 'superior' ou 'inferior'
     const somaIncInf = parseFloat(document.getElementById('somaIncInf').value);
-    const somaIncSup = parseFloat(document.getElementById('somaIncSup').value);
-    const espSup = parseFloat(document.getElementById('espacoSup').value);
-    const espInf = parseFloat(document.getElementById('espacoInf').value);
+    const espacoPresente = parseFloat(document.getElementById('espacoPresente').value);
 
     if (!somaIncInf || somaIncInf < 19.5 || somaIncInf > 27.0) {
-      alert("Por favor, insira um valor para a soma dos incisivos INFERIORES entre 19.5 e 27.0 mm.");
+      alert("Insira a soma dos incisivos inferiores (entre 19.5 e 27.0 mm).");
       return;
     }
 
-    // Arredonda para a coluna de 0.5 mm mais próxima na tabela
+    if (isNaN(espacoPresente)) {
+      alert("Por favor, insira o perímetro presente na arcada.");
+      return;
+    }
+
+    // Arredondamento para a coluna de 0.5 mm da tabela
     const valorArredondado = (Math.round(somaIncInf * 2) / 2).toFixed(1);
 
-    // Busca o valor exato na tabela para UM lado
-    const necSupUmLado = tabelaMoyers75[sexo].maxilar[valorArredondado];
-    const necInfUmLado = tabelaMoyers75[sexo].mandibula[valorArredondado];
+    let espacoRequeridoTotal = 0;
+    let nomeArcada = '';
 
-    let html = `<em>Valor da Tabela (${valorArredondado} mm): Sup: ${necSupUmLado} mm | Inf: ${necInfUmLado} mm (por lado)</em><br><br>`;
+    if (arcada === 'inferior') {
+      nomeArcada = 'Inferior (Mandíbula)';
+      const necInfUmLado = tabelaMoyers75[sexo].mandibula[valorArredondado];
+      // Perímetro Inferior = Soma dos Incisivos Inferiores + (Caninos/Pré-molares x 2)
+      espacoRequeridoTotal = somaIncInf + (necInfUmLado * 2);
 
-    // --- CÁLCULO DA MANDÍBULA (INFERIOR) ---
-    if (!isNaN(espInf)) {
-      const necTotalInf = somaIncInf + (necInfUmLado * 2);
-      const discInf = (espInf - necTotalInf).toFixed(1);
-      const corInf = discInf < 0 ? 'red' : 'green';
+    } else {
+      nomeArcada = 'Superior (Maxilar)';
+      const somaIncSup = parseFloat(document.getElementById('somaIncSup').value);
       
-      html += `<strong>Arcada Inferior:</strong><br>`;
-      html += `Espaço Requerido Total: ${necTotalInf.toFixed(1)} mm<br>`;
-      html += `Discrepância de Modelo: <strong style="color:${corInf}">${discInf > 0 ? '+' : ''}${discInf} mm</strong><br><br>`;
+      if (isNaN(somaIncSup)) {
+        alert("Para calcular a arcada superior, informe também a soma dos incisivos superiores.");
+        return;
+      }
+
+      const necSupUmLado = tabelaMoyers75[sexo].maxilar[valorArredondado];
+      // Perímetro Superior = Soma dos Incisivos Superiores + (Caninos/Pré-molares x 2)
+      espacoRequeridoTotal = somaIncSup + (necSupUmLado * 2);
     }
 
-    // --- CÁLCULO DO MAXILAR (SUPERIOR) ---
-    if (!isNaN(espSup)) {
-      if (isNaN(somaIncSup)) {
-        html += `<span style="color:red">Para calcular a arcada Superior, preencha a Soma dos Incisivos Superiores.</span>`;
-      } else {
-        const necTotalSup = somaIncSup + (necSupUmLado * 2);
-        const discSup = (espSup - necTotalSup).toFixed(1);
-        const corSup = discSup < 0 ? 'red' : 'green';
-        
-        html += `<strong>Arcada Superior:</strong><br>`;
-        html += `Espaço Requerido Total: ${necTotalSup.toFixed(1)} mm<br>`;
-        html += `Discrepância de Modelo: <strong style="color:${corSup}">${discSup > 0 ? '+' : ''}${discSup} mm</strong>`;
-      }
-    }
+    const discrepancia = (espacoPresente - espacoRequeridoTotal).toFixed(1);
+    const cor = discrepancia < 0 ? 'red' : 'green';
+
+    let html = `<strong>Resultado - Arcada ${nomeArcada}</strong><br>`;
+    html += `Sexo: ${sexo.charAt(0).toUpperCase() + sexo.slice(1)} | Coluna Tabela: ${valorArredondado} mm<br><br>`;
+    html += `Espaço Requerido Total: <strong>${espacoRequeridoTotal.toFixed(1)} mm</strong><br>`;
+    html += `Espaço Presente: <strong>${espacoPresente.toFixed(1)} mm</strong><br>`;
+    html += `Discrepância de Modelo: <strong style="color:${cor}; font-size: 16px;">${discrepancia > 0 ? '+' : ''}${discrepancia} mm</strong>`;
 
     const res = document.getElementById('resMoyers');
     res.innerHTML = html;
     res.style.display = 'block';
   }
+  
   function calcularBolton() {
     const antSup = parseFloat(document.getElementById('antSup').value);
     const antInf = parseFloat(document.getElementById('antInf').value);
