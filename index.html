@@ -19,6 +19,48 @@
     input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
     button.calc-btn { width: 100%; padding: 12px; background: #2b6cb0; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; margin-top: 15px; cursor: pointer; }
     .result-box { margin-top: 15px; padding: 12px; background: #edf2f7; border-radius: 6px; font-size: 14px; color: #2d3748; }
+
+/* MODO ESCURO AUTOMÁTICO */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #121212;
+        color: #e0e0e0;
+      }
+      .card {
+        background-color: #1e1e1e;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      }
+      h2 {
+        color: #63b3ed;
+      }
+      label {
+        color: #e2e8f0;
+      }
+      input, select {
+        background-color: #2d3748;
+        color: #ffffff;
+        border-color: #4a5568;
+      }
+      input::placeholder {
+        color: #a0aec0;
+      }
+      .nav-tabs {
+        border-bottom-color: #4a5568;
+      }
+      .tab-btn {
+        background-color: #2d3748;
+        color: #a0aec0;
+      }
+      .tab-btn.active {
+        background-color: #3182ce;
+        color: #ffffff;
+      }
+      .result-box {
+        background-color: #2d3748;
+        color: #e2e8f0;
+      }
+    }
+    
   </style>
 </head>
 <body>
