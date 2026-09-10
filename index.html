@@ -90,14 +90,14 @@
     event.currentTarget.classList.add('active');
   }
 
-  const tabelaMoyers75 = {
+const tabelaMoyers75 = {
     masculino: {
-      maxilar: { 19.5: 20.6, 20.0: 20.9, 20.5: 21.2, 21.0: 21.5, 21.5: 21.8, 22.0: 22.0, 22.5: 22.3, 23.0: 22.6, 23.5: 22.9, 24.0: 23.2, 24.5: 23.5, 25.0: 23.8, 25.5: 24.1, 26.0: 24.4, 26.5: 24.7, 27.0: 25.0 },
-      mandibula: { 19.5: 20.1, 20.0: 20.4, 20.5: 20.7, 21.0: 21.0, 21.5: 21.3, 22.0: 21.6, 22.5: 21.9, 23.0: 22.2, 23.5: 22.5, 24.0: 22.8, 24.5: 23.1, 25.0: 23.4, 25.5: 23.7, 26.0: 24.0, 26.5: 24.3, 27.0: 24.6 }
+      maxilar: { "19.5": 20.6, "20.0": 20.9, "20.5": 21.2, "21.0": 21.5, "21.5": 21.8, "22.0": 22.0, "22.5": 22.3, "23.0": 22.6, "23.5": 22.9, "24.0": 23.2, "24.5": 23.5, "25.0": 23.8, "25.5": 24.1, "26.0": 24.4, "26.5": 24.7, "27.0": 25.0 },
+      mandibula: { "19.5": 20.1, "20.0": 20.4, "20.5": 20.7, "21.0": 21.0, "21.5": 21.3, "22.0": 21.6, "22.5": 21.9, "23.0": 22.2, "23.5": 22.5, "24.0": 22.8, "24.5": 23.1, "25.0": 23.4, "25.5": 23.7, "26.0": 24.0, "26.5": 24.3, "27.0": 24.6 }
     },
     feminino: {
-      maxilar: { 19.5: 20.1, 20.0: 20.4, 20.5: 20.7, 21.0: 21.0, 21.5: 21.3, 22.0: 21.5, 22.5: 21.8, 23.0: 22.1, 23.5: 22.4, 24.0: 22.7, 24.5: 23.0, 25.0: 23.3, 25.5: 23.6, 26.0: 23.9, 26.5: 24.2, 27.0: 24.5 },
-      mandibula: { 19.5: 19.6, 20.0: 19.9, 20.5: 20.2, 21.0: 20.5, 21.5: 20.8, 22.0: 21.1, 22.5: 21.4, 23.0: 21.7, 23.5: 22.0, 24.0: 22.3, 24.5: 22.6, 25.0: 22.9, 25.5: 23.2, 26.0: 23.5, 26.5: 23.8, 27.0: 24.1 }
+      maxilar: { "19.5": 20.1, "20.0": 20.4, "20.5": 20.7, "21.0": 21.0, "21.5": 21.3, "22.0": 21.5, "22.5": 21.8, "23.0": 22.1, "23.5": 22.4, "24.0": 22.7, "24.5": 23.0, "25.0": 23.3, "25.5": 23.6, "26.0": 23.9, "26.5": 24.2, "27.0": 24.5 },
+      mandibula: { "19.5": 19.6, "20.0": 19.9, "20.5": 20.2, "21.0": 20.5, "21.5": 20.8, "22.0": 21.1, "22.5": 21.4, "23.0": 21.7, "23.5": 22.0, "24.0": 22.3, "24.5": 22.6, "25.0": 22.9, "25.5": 23.2, "26.0": 23.5, "26.5": 23.8, "27.0": 24.1 }
     }
   };
 
@@ -112,14 +112,14 @@
     }
   }
 
-  function calcularMoyers() {
+function calcularMoyers() {
     const sexo = document.getElementById('sexo').value;
-    const arcada = document.getElementById('arcada').value; // 'superior' ou 'inferior'
+    const arcada = document.getElementById('arcada').value;
     const somaIncInf = parseFloat(document.getElementById('somaIncInf').value);
     const espacoPresente = parseFloat(document.getElementById('espacoPresente').value);
 
-    if (!somaIncInf || somaIncInf < 19.5 || somaIncInf > 27.0) {
-      alert("Insira a soma dos incisivos inferiores (entre 19.5 e 27.0 mm).");
+    if (isNaN(somaIncInf) || somaIncInf < 19.5 || somaIncInf > 27.0) {
+      alert("Insira a soma dos incisivos inferiores entre 19.5 e 27.0 mm.");
       return;
     }
 
@@ -128,7 +128,7 @@
       return;
     }
 
-    // Arredondamento para a coluna de 0.5 mm da tabela
+    // Garante chave com formato "XX.X"
     const valorArredondado = (Math.round(somaIncInf * 2) / 2).toFixed(1);
 
     let espacoRequeridoTotal = 0;
@@ -137,7 +137,11 @@
     if (arcada === 'inferior') {
       nomeArcada = 'Inferior (Mandíbula)';
       const necInfUmLado = tabelaMoyers75[sexo].mandibula[valorArredondado];
-      // Perímetro Inferior = Soma dos Incisivos Inferiores + (Caninos/Pré-molares x 2)
+      
+      if (necInfUmLado === undefined) {
+        alert("Erro ao buscar valor na tabela.");
+        return;
+      }
       espacoRequeridoTotal = somaIncInf + (necInfUmLado * 2);
 
     } else {
@@ -150,7 +154,11 @@
       }
 
       const necSupUmLado = tabelaMoyers75[sexo].maxilar[valorArredondado];
-      // Perímetro Superior = Soma dos Incisivos Superiores + (Caninos/Pré-molares x 2)
+
+      if (necSupUmLado === undefined) {
+        alert("Erro ao buscar valor na tabela.");
+        return;
+      }
       espacoRequeridoTotal = somaIncSup + (necSupUmLado * 2);
     }
 
@@ -158,7 +166,7 @@
     const cor = discrepancia < 0 ? 'red' : 'green';
 
     let html = `<strong>Resultado - Arcada ${nomeArcada}</strong><br>`;
-    html += `Sexo: ${sexo.charAt(0).toUpperCase() + sexo.slice(1)} | Coluna Tabela: ${valorArredondado} mm<br><br>`;
+    html += `Sexo: ${sexo.charAt(0).toUpperCase() + sexo.slice(1)} | Tabela: ${valorArredondado} mm<br><br>`;
     html += `Espaço Requerido Total: <strong>${espacoRequeridoTotal.toFixed(1)} mm</strong><br>`;
     html += `Espaço Presente: <strong>${espacoPresente.toFixed(1)} mm</strong><br>`;
     html += `Discrepância de Modelo: <strong style="color:${cor}; font-size: 16px;">${discrepancia > 0 ? '+' : ''}${discrepancia} mm</strong>`;
