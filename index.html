@@ -2,161 +2,187 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>OrthoCalculator</title>
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="orthologo.png">
   
-  <!-- Firebase SDKs (v10 compat) -->
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f4f8; margin: 0; padding: 15px; display: flex; justify-content: center; }
-    .card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 440px; }
-    h2 { text-align: center; color: #1a365d; margin-bottom: 5px; margin-top: 0; }
-    .subtitle { text-align: center; color: #718096; font-size: 12px; margin-bottom: 15px; }
-    
-    /* BARRA DE USUÁRIO E PACIENTE */
-    .user-bar, .patient-bar { background: #e2e8f0; padding: 10px; border-radius: 8px; margin-bottom: 12px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
-    .patient-bar { background: #ebf8ff; border: 1px solid #bee3f8; }
-    .btn-sm { padding: 5px 10px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; background: #2b6cb0; color: white; font-weight: bold; }
-    
-    /* TABS */
-    .nav-tabs { display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0; }
-    .tab-btn { flex: 1; padding: 8px; border: none; background: #e2e8f0; color: #4a5568; font-weight: bold; border-radius: 6px 6px 0 0; cursor: pointer; font-size: 13px; }
-    .tab-btn.active { background: #2b6cb0; color: white; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    
-    /* FORMULÁRIOS */
-    label { display: block; margin-top: 8px; font-weight: 600; color: #2d3748; font-size: 13px; }
-    input, select { width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box; font-size: 15px; }
-    button.calc-btn { width: 100%; padding: 10px; background: #2b6cb0; color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; margin-top: 12px; cursor: pointer; }
-    button.save-btn { width: 100%; padding: 10px; background: #38a169; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; margin-top: 8px; cursor: pointer; }
-    
-    .result-box { margin-top: 12px; padding: 12px; background: #edf2f7; border-radius: 6px; font-size: 13px; color: #2d3748; }
-    .timeline-item { background: #f7fafc; border-left: 3px solid #2b6cb0; padding: 8px 12px; margin-bottom: 8px; border-radius: 0 6px 6px 0; font-size: 12px; }
+    /* RESET E BASE */
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    * { box-sizing: border-box; }
 
-    /* MODO ESCURO AUTOMÁTICO */
+    /* CABEÇALHO SUPERIOR */
+    .header { background: #1a365d; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); z-index: 10; }
+    .header h2 { margin: 0; font-size: 20px; }
+    .login-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 13px; font-weight: bold; }
+
+    /* BANNER DE PACIENTE ATIVO */
+    .patient-banner { background: #ebf8ff; border-bottom: 1px solid #bee3f8; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #2b6cb0; transition: all 0.3s; }
+    .patient-banner.inactive { display: none; }
+    .change-btn { background: #3182ce; color: white; border: none; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; }
+
+    /* ÁREA DE CONTEÚDO (ROLÁVEL) */
+    .content-area { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 80px; /* Espaço para a barra inferior */ }
+    
+    /* ESTILO DOS CARDS (Formulários) */
+    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); max-width: 500px; margin: 0 auto; }
+    h3 { margin-top: 0; color: #2d3748; font-size: 18px; border-bottom: 2px solid #edf2f7; padding-bottom: 10px; }
+    
+    label { display: block; margin-top: 12px; font-weight: 600; color: #4a5568; font-size: 13px; }
+    input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #e2e8f0; border-radius: 8px; font-size: 15px; background-color: #f7fafc; transition: border 0.2s; }
+    input:focus, select:focus { outline: none; border-color: #3182ce; background-color: #fff; }
+    
+    button.calc-btn { width: 100%; padding: 12px; background: #2b6cb0; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; margin-top: 20px; cursor: pointer; }
+    button.save-btn { width: 100%; padding: 12px; background: #38a169; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; margin-top: 10px; cursor: pointer; }
+
+    /* NAVEGAÇÃO INFERIOR FLUTUANTE (BOTTOM NAV) */
+    .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 10; padding-bottom: env(safe-area-inset-bottom); /* Suporte para iPhone */ }
+    .nav-item { flex: 1; text-align: center; padding: 12px 0; color: #a0aec0; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .nav-item.active { color: #2b6cb0; }
+    .nav-icon { font-size: 20px; }
+
+    /* UTILITÁRIOS */
+    .tab-content { display: none; animation: fadeIn 0.3s; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    .result-box { margin-top: 15px; padding: 15px; background: #ebf8ff; border-radius: 8px; border-left: 4px solid #3182ce; font-size: 14px; color: #2d3748; }
+    .timeline-item { background: white; border: 1px solid #e2e8f0; border-left: 4px solid #2b6cb0; padding: 10px; margin-bottom: 10px; border-radius: 6px; font-size: 13px; }
+
+    /* MODO ESCURO */
     @media (prefers-color-scheme: dark) {
-      body { background-color: #121212; color: #e0e0e0; }
-      .card { background-color: #1e1e1e; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
-      h2 { color: #63b3ed; }
-      label { color: #e2e8f0; }
-      input, select { background-color: #2d3748; color: #ffffff; border-color: #4a5568; }
-      .nav-tabs { border-bottom-color: #4a5568; }
-      .tab-btn { background-color: #2d3748; color: #a0aec0; }
-      .tab-btn.active { background-color: #3182ce; color: #ffffff; }
-      .result-box, .timeline-item { background-color: #2d3748; color: #e2e8f0; }
-      .user-bar, .patient-bar { background-color: #2d3748; border-color: #4a5568; color: #e2e8f0; }
+      body { background-color: #121212; color: #e2e8f0; }
+      .header { background: #1a202c; }
+      .patient-banner { background: #2d3748; border-color: #4a5568; color: #90cdf4; }
+      .card { background: #1e1e1e; }
+      h3 { color: #e2e8f0; border-color: #2d3748; }
+      label { color: #a0aec0; }
+      input, select { background-color: #2d3748; border-color: #4a5568; color: white; }
+      .bottom-nav { background: #1e1e1e; border-top: 1px solid #2d3748; }
+      .nav-item { color: #718096; }
+      .nav-item.active { color: #63b3ed; }
+      .result-box { background: #2c3e50; border-left-color: #63b3ed; color: #e2e8f0; }
+      .timeline-item { background: #1e1e1e; border-color: #2d3748; }
     }
   </style>
 </head>
 <body>
 
-<div class="card">
-  <h2>OrthoCalculator</h2>
-  <div class="subtitle">Calculadora de Discrepância de Modelo</div>
+  <!-- CABEÇALHO FIXO -->
+  <header class="header">
+    <h2>🦷 OrthoCalc</h2>
+    <button id="btnLogin" class="login-btn" onclick="fazerLogin()">Entrar</button>
+  </header>
 
-  <!-- BARRA DE AUTENTICAÇÃO -->
-  <div class="user-bar">
-    <span id="userStatus">Status: Desconectado</span>
-    <button id="btnLogin" class="btn-sm" onclick="fazerLogin()">Entrar</button>
+  <!-- BANNER DO PACIENTE (Fica oculto até selecionar alguém) -->
+  <div id="patientBanner" class="patient-banner inactive">
+    <div><strong>👤</strong> <span id="nomePacienteAtivo">Nenhum selecionado</span></div>
+    <button class="change-btn" onclick="switchTab('pacientes')">Trocar</button>
   </div>
 
-  <!-- BARRA DE SELEÇÃO DE PACIENTE -->
-  <div class="patient-bar">
-    <div>
-      <strong>Paciente:</strong> <span id="nomePacienteAtivo">Nenhum selecionado</span>
+  <!-- ÁREA ROLÁVEL CENTRAL -->
+  <main class="content-area">
+
+    <!-- ABA MOYERS -->
+    <div id="moyers" class="tab-content active card">
+      <h3>Análise de Moyers</h3>
+      
+      <label for="sexoMoyers">Sexo do Paciente:</label>
+      <select id="sexoMoyers">
+        <option value="masculino">Masculino</option>
+        <option value="feminino">Feminino</option>
+      </select>
+
+      <label for="arcada">Arcada a Analisar:</label>
+      <select id="arcada" onchange="toggleIncisivosSup()">
+        <option value="inferior">Inferior (Mandíbula)</option>
+        <option value="superior">Superior (Maxilar)</option>
+      </select>
+
+      <label for="somaIncInf">Soma dos 4 Inc. Inferiores (mm):</label>
+      <input type="number" id="somaIncInf" step="0.1" placeholder="Ex: 22.5">
+
+      <div id="campoIncSup" style="display: none;">
+        <label for="somaIncSup">Soma dos 4 Inc. Superiores (mm):</label>
+        <input type="number" id="somaIncSup" step="0.1" placeholder="Ex: 29.0">
+      </div>
+
+      <label for="espacoPresente">Espaço Presente na Arcada (mm):</label>
+      <input type="number" id="espacoPresente" step="0.1" placeholder="Medida no modelo">
+
+      <button class="calc-btn" onclick="calcularMoyers()">Calcular Moyers</button>
+
+      <div id="resMoyers" class="result-box" style="display:none;"></div>
+      <button id="btnSalvarMoyers" class="save-btn" style="display:none;" onclick="salvarAnaliseMoyers()">💾 Salvar na Ficha</button>
     </div>
-    <button class="btn-sm" onclick="switchTab('pacientes')">Mudar</button>
-  </div>
 
-  <!-- NAVEGAÇÃO POR ABAS -->
-  <div class="nav-tabs">
-    <button class="tab-btn active" onclick="switchTab('moyers')">Moyers</button>
-    <button class="tab-btn" onclick="switchTab('bolton')">Bolton</button>
-    <button class="tab-btn" onclick="switchTab('pacientes')">Pacientes</button>
-  </div>
+    <!-- ABA BOLTON -->
+    <div id="bolton" class="tab-content card">
+      <h3>Análise de Bolton</h3>
+      
+      <label for="antSup">Soma 6 Dentes Ant. Superiores (mm):</label>
+      <input type="number" id="antSup" step="0.1" placeholder="Canino a Canino">
 
-  <!-- ABA MOYERS -->
-  <div id="moyers" class="tab-content active">
-    <label for="sexoMoyers">Sexo do Paciente:</label>
-    <select id="sexoMoyers">
-      <option value="masculino">Masculino</option>
-      <option value="feminino">Feminino</option>
-    </select>
+      <label for="antInf">Soma 6 Dentes Ant. Inferiores (mm):</label>
+      <input type="number" id="antInf" step="0.1" placeholder="Canino a Canino">
 
-    <label for="arcada">Arcada a Analisar:</label>
-    <select id="arcada" onchange="toggleIncisivosSup()">
-      <option value="inferior">Inferior (Mandíbula)</option>
-      <option value="superior">Superior (Maxilar)</option>
-    </select>
+      <label for="totSup">Soma 12 Dentes Superiores (mm):</label>
+      <input type="number" id="totSup" step="0.1" placeholder="1º Molar a 1º Molar">
 
-    <label for="somaIncInf">Soma dos 4 Incisivos Inferiores (mm):</label>
-    <input type="number" id="somaIncInf" step="0.1" placeholder="Ex: 22.5">
+      <label for="totInf">Soma 12 Dentes Inferiores (mm):</label>
+      <input type="number" id="totInf" step="0.1" placeholder="1º Molar a 1º Molar">
 
-    <div id="campoIncSup" style="display: none;">
-      <label for="somaIncSup">Soma dos 4 Incisivos Superiores (mm):</label>
-      <input type="number" id="somaIncSup" step="0.1" placeholder="Ex: 29.0">
+      <button class="calc-btn" onclick="calcularBolton()">Calcular Bolton</button>
+
+      <div id="resBolton" class="result-box" style="display:none;"></div>
+      <button id="btnSalvarBolton" class="save-btn" style="display:none;" onclick="salvarAnaliseBolton()">💾 Salvar na Ficha</button>
     </div>
 
-    <label for="espacoPresente">Perímetro Total Presente na Arcada (mm):</label>
-    <input type="number" id="espacoPresente" step="0.1" placeholder="Medida no modelo">
+    <!-- ABA PACIENTES -->
+    <div id="pacientes" class="tab-content card">
+      <h3>Gerenciar Pacientes</h3>
+      
+      <label for="selectListaPacientes">Meus Pacientes:</label>
+      <select id="selectListaPacientes" onchange="selecionarPaciente()">
+        <option value="">-- Selecione um Paciente --</option>
+      </select>
 
-    <button class="calc-btn" onclick="calcularMoyers()">Calcular Moyers</button>
+      <div id="historicoPaciente" style="margin-top: 15px;"></div>
 
-    <div id="resMoyers" class="result-box" style="display:none;"></div>
-    <button id="btnSalvarMoyers" class="save-btn" style="display:none;" onclick="salvarAnaliseMoyers()">💾 Salvar na Ficha do Paciente</button>
-  </div>
+      <button id="btnExcluirPaciente" class="save-btn" style="background-color: #e53e3e; display: none; margin-top: 10px;" onclick="excluirPaciente()">🗑️ Excluir Paciente</button>
 
-  <!-- ABA BOLTON -->
-  <div id="bolton" class="tab-content">
-    <label for="antSup">Soma 6 Dentes Anteriores Superiores (mm):</label>
-    <input type="number" id="antSup" step="0.1" placeholder="Canino a Canino">
+      <hr style="margin: 25px 0; border: 0; border-top: 1px solid #e2e8f0;">
 
-    <label for="antInf">Soma 6 Dentes Anteriores Inferiores (mm):</label>
-    <input type="number" id="antInf" step="0.1" placeholder="Canino a Canino">
+      <h3>Novo Paciente</h3>
+      <label for="novoNome">Nome do Paciente:</label>
+      <input type="text" id="novoNome" placeholder="Ex: Maria Silva">
+      
+      <label for="novoProntuario">Número do Prontuário:</label>
+      <input type="text" id="novoProntuario" placeholder="Ex: 1042">
 
-    <label for="totSup">Soma 12 Dentes Superiores (mm):</label>
-    <input type="number" id="totSup" step="0.1" placeholder="1º Molar a 1º Molar">
+      <button class="calc-btn" style="background-color: #4a5568;" onclick="cadastrarPaciente()">+ Cadastrar</button>
+    </div>
 
-    <label for="totInf">Soma 12 Dentes Inferiores (mm):</label>
-    <input type="number" id="totInf" step="0.1" placeholder="1º Molar a 1º Molar">
+  </main>
 
-    <button class="calc-btn" onclick="calcularBolton()">Calcular Bolton</button>
-
-    <div id="resBolton" class="result-box" style="display:none;"></div>
-    <button id="btnSalvarBolton" class="save-btn" style="display:none;" onclick="salvarAnaliseBolton()">💾 Salvar na Ficha do Paciente</button>
-  </div>
-
- <!-- ABA PACIENTES & PRONTUÁRIO -->
-  <div id="pacientes" class="tab-content">
-    <h3>Novo Paciente</h3>
-    <label for="novoNome">Nome do Paciente:</label>
-    <input type="text" id="novoNome" placeholder="Ex: Maria Silva">
-    
-    <label for="novoProntuario">Número do Prontuário:</label>
-    <input type="text" id="novoProntuario" placeholder="Ex: 1042">
-
-    <button class="calc-btn" onclick="cadastrarPaciente()">+ Cadastrar Paciente</button>
-
-    <hr style="margin: 15px 0; border: 0; border-top: 1px solid #cbd5e0;">
-
-    <h3>Meus Pacientes</h3>
-    <select id="selectListaPacientes" onchange="selecionarPaciente()">
-      <option value="">-- Selecione um Paciente --</option>
-    </select>
-
-    <!-- BOTÃO DE EXCLUIR (Aparece apenas quando um paciente é selecionado) -->
-    <button id="btnExcluirPaciente" class="save-btn" style="background-color: #e53e3e; display: none; margin-top: 10px;" onclick="excluirPaciente()">
-      🗑️ Excluir Paciente Selecionado
-    </button>
-
-    <div id="historicoPaciente" style="margin-top: 15px;"></div>
-  </div>
+  <!-- NAVEGAÇÃO INFERIOR (BOTTOM NAV) -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" onclick="switchTab('moyers', this)">
+      <span class="nav-icon">🦷</span>
+      Moyers
+    </div>
+    <div class="nav-item" onclick="switchTab('bolton', this)">
+      <span class="nav-icon">📐</span>
+      Bolton
+    </div>
+    <div class="nav-item" onclick="switchTab('pacientes', this)">
+      <span class="nav-icon">📁</span>
+      Pacientes
+    </div>
+  </nav>
 
 <script>
   // CONFIGURAÇÃO DO FIREBASE (Substitua pelas chaves do seu console Firebase)
@@ -194,15 +220,24 @@ const firebaseConfig = {
   };
 
   // NAVEGAÇÃO ENTRE ABAS
-  function switchTab(tabId) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
-    
-    // Ativa a aba visualmente
-    const btnMap = { 'moyers': 0, 'bolton': 1, 'pacientes': 2 };
-    document.querySelectorAll('.tab-btn')[btnMap[tabId]].classList.add('active');
+ function switchTab(tabId, element = null) {
+  // Esconde todos os conteúdos
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  // Remove classe active dos botões do bottom nav
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  
+  // Mostra o conteúdo escolhido
+  document.getElementById(tabId).classList.add('active');
+  
+  // Marca o botão clicado como ativo (ou seleciona manualmente se foi chamado pelo código)
+  if(element) {
+    element.classList.add('active');
+  } else {
+    // Se o clique veio do botão "Trocar" no banner
+    const index = tabId === 'moyers' ? 0 : (tabId === 'bolton' ? 1 : 2);
+    document.querySelectorAll('.nav-item')[index].classList.add('active');
   }
+}
 
   function toggleIncisivosSup() {
     const arcada = document.getElementById('arcada').value;
@@ -329,6 +364,38 @@ const firebaseConfig = {
   let unsubscribePacientes = null;
   let unsubscribeHistorico = null;
 
+  async function cadastrarPaciente() {
+  if (!usuarioLogado) {
+    alert("Você precisa estar logado para cadastrar pacientes.");
+    return;
+  }
+
+  const nome = document.getElementById('novoNome').value.trim();
+  const prontuario = document.getElementById('novoProntuario').value.trim();
+
+  if (!nome) {
+    alert("Por favor, insira o nome do paciente.");
+    return;
+  }
+
+  try {
+    // Adiciona o paciente vinculando ao ID do médico logado
+    await db.collection('pacientes').add({
+      nome: nome,
+      prontuario: prontuario,
+      uidDoutor: usuarioLogado.uid,
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    alert("Paciente cadastrado com sucesso!");
+    // Limpa os campos após salvar
+    document.getElementById('novoNome').value = '';
+    document.getElementById('novoProntuario').value = '';
+  } catch (error) {
+    alert("Erro ao cadastrar paciente: " + error.message);
+  }
+}
+
   // CARREGAR PACIENTES EM TEMPO REAL (FUNCIONA OFFLINE)
   function carregarPacientes() {
     if (!usuarioLogado) return;
@@ -375,6 +442,15 @@ const firebaseConfig = {
     document.getElementById('nomePacienteAtivo').innerText = pacienteAtivo.nome;
     btnExcluir.style.display = 'block';
 
+    const banner = document.getElementById('patientBanner');
+  if (!id) {
+     // ... seu código atual ...
+     banner.classList.add('inactive');
+  } else {
+     // ... seu código atual ...
+     banner.classList.remove('inactive');
+  }
+
     carregarHistorico();
   }
 
@@ -413,29 +489,38 @@ const firebaseConfig = {
   }
 
   // EXCLUIR PACIENTE
+
   async function excluirPaciente() {
-    if (!pacienteAtivo) return alert("Nenhum paciente selecionado.");
+  if (!pacienteAtivo) return alert("Nenhum paciente selecionado.");
 
-    const confirmacao = confirm(`Tem certeza que deseja excluir o paciente "${pacienteAtivo.nome}" e todo o seu histórico?\nEsta ação não pode ser desfeita.`);
+  const confirmacao = confirm(`Tem certeza que deseja excluir o paciente "${pacienteAtivo.nome}" e todo o seu histórico?\nEsta ação não pode ser desfeita.`);
+  if (!confirmacao) return;
+
+  try {
+    // 1. Buscar e deletar o histórico (subcoleção 'analises')
+    const analisesSnapshot = await db.collection('pacientes').doc(pacienteAtivo.id).collection('analises').get();
     
-    if (!confirmacao) return;
+    // Deleta documento por documento da subcoleção
+    const promessasExclusao = [];
+    analisesSnapshot.forEach(doc => {
+      promessasExclusao.push(doc.ref.delete());
+    });
+    await Promise.all(promessasExclusao);
 
-    try {
-      await db.collection('pacientes').doc(pacienteAtivo.id).delete();
-      alert("Paciente excluído com sucesso!");
+    // 2. Só depois deletar o paciente principal
+    await db.collection('pacientes').doc(pacienteAtivo.id).delete();
+    alert("Paciente e histórico excluídos com sucesso!");
 
-      // Limpa a seleção ativa
-      pacienteAtivo = null;
-      document.getElementById('nomePacienteAtivo').innerText = "Nenhum selecionado";
-      document.getElementById('selectListaPacientes').value = "";
-      document.getElementById('historicoPaciente').innerHTML = "";
-      document.getElementById('btnExcluirPaciente').style.display = 'none';
-      document.getElementById('btnSalvarMoyers').style.display = 'none';
-      document.getElementById('btnSalvarBolton').style.display = 'none';
-    } catch (error) {
-      alert("Erro ao excluir paciente: " + error.message);
-    }
+    // Limpa a interface
+    pacienteAtivo = null;
+    document.getElementById('nomePacienteAtivo').innerText = "Nenhum selecionado";
+    document.getElementById('selectListaPacientes').value = "";
+    document.getElementById('historicoPaciente').innerHTML = "";
+    document.getElementById('btnExcluirPaciente').style.display = 'none';
+  } catch (error) {
+    alert("Erro ao excluir paciente: " + error.message);
   }
+}
 
   async function salvarAnaliseMoyers() {
     if (!pacienteAtivo || !ultimoResultadoMoyers) return;
