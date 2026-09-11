@@ -323,23 +323,28 @@ const firebaseConfig = {
   }
 
   // GESTÃO DE PACIENTES NO FIREBASE
-  async function cadastrarPaciente() {
+ async function cadastrarPaciente() {
     if (!usuarioLogado) return alert("Faça login para cadastrar pacientes na nuvem.");
     const nome = document.getElementById('novoNome').value;
     const prontuario = document.getElementById('novoProntuario').value;
 
     if (!nome) return alert("Informe o nome do paciente.");
 
-    await db.collection('pacientes').add({
-      uidDoutor: usuarioLogado.uid,
-      nome: nome,
-      prontuario: prontuario,
-      criadoEm: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    try {
+      await db.collection('pacientes').add({
+        uidDoutor: usuarioLogado.uid,
+        nome: nome,
+        prontuario: prontuario,
+        criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+      });
 
-    document.getElementById('novoNome').value = '';
-    document.getElementById('novoProntuario').value = '';
-    carregarPacientes();
+      alert("Paciente " + nome + " cadastrado com sucesso!");
+      document.getElementById('novoNome').value = '';
+      document.getElementById('novoProntuario').value = '';
+      carregarPacientes();
+    } catch (error) {
+      alert("Erro ao cadastrar paciente: " + error.message);
+    }
   }
 
   async function carregarPacientes() {
