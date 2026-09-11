@@ -6,77 +6,85 @@
   <title>OrthoCalculator</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="orthologo.png">
+  
+  <!-- Firebase SDKs (v10 compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
   <style>
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f4f8; margin: 0; padding: 15px; display: flex; justify-content: center; }
-    .card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 420px; }
-    h2 { text-align: center; color: #1a365d; margin-bottom: 15px; }
-    .nav-tabs { display: flex; gap: 5px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; }
-    .tab-btn { flex: 1; padding: 10px; border: none; background: #e2e8f0; color: #4a5568; font-weight: bold; border-radius: 8px 8px 0 0; cursor: pointer; }
+    .card { background: #fff; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 440px; }
+    h2 { text-align: center; color: #1a365d; margin-bottom: 5px; margin-top: 0; }
+    .subtitle { text-align: center; color: #718096; font-size: 12px; margin-bottom: 15px; }
+    
+    /* BARRA DE USUÁRIO E PACIENTE */
+    .user-bar, .patient-bar { background: #e2e8f0; padding: 10px; border-radius: 8px; margin-bottom: 12px; font-size: 13px; display: flex; justify-content: space-between; align-items: center; }
+    .patient-bar { background: #ebf8ff; border: 1px solid #bee3f8; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; background: #2b6cb0; color: white; font-weight: bold; }
+    
+    /* TABS */
+    .nav-tabs { display: flex; gap: 5px; margin-bottom: 15px; border-bottom: 2px solid #e2e8f0; }
+    .tab-btn { flex: 1; padding: 8px; border: none; background: #e2e8f0; color: #4a5568; font-weight: bold; border-radius: 6px 6px 0 0; cursor: pointer; font-size: 13px; }
     .tab-btn.active { background: #2b6cb0; color: white; }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
-    label { display: block; margin-top: 10px; font-weight: 600; color: #2d3748; }
-    input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
-    button.calc-btn { width: 100%; padding: 12px; background: #2b6cb0; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; margin-top: 15px; cursor: pointer; }
-    .result-box { margin-top: 15px; padding: 12px; background: #edf2f7; border-radius: 6px; font-size: 14px; color: #2d3748; }
-
-/* MODO ESCURO AUTOMÁTICO */
-    @media (prefers-color-scheme: dark) {
-      body {
-        background-color: #121212;
-        color: #e0e0e0;
-      }
-      .card {
-        background-color: #1e1e1e;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-      }
-      h2 {
-        color: #63b3ed;
-      }
-      label {
-        color: #e2e8f0;
-      }
-      input, select {
-        background-color: #2d3748;
-        color: #ffffff;
-        border-color: #4a5568;
-      }
-      input::placeholder {
-        color: #a0aec0;
-      }
-      .nav-tabs {
-        border-bottom-color: #4a5568;
-      }
-      .tab-btn {
-        background-color: #2d3748;
-        color: #a0aec0;
-      }
-      .tab-btn.active {
-        background-color: #3182ce;
-        color: #ffffff;
-      }
-      .result-box {
-        background-color: #2d3748;
-        color: #e2e8f0;
-      }
-    }
     
+    /* FORMULÁRIOS */
+    label { display: block; margin-top: 8px; font-weight: 600; color: #2d3748; font-size: 13px; }
+    input, select { width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #cbd5e0; border-radius: 6px; box-sizing: border-box; font-size: 15px; }
+    button.calc-btn { width: 100%; padding: 10px; background: #2b6cb0; color: white; border: none; border-radius: 6px; font-size: 15px; font-weight: bold; margin-top: 12px; cursor: pointer; }
+    button.save-btn { width: 100%; padding: 10px; background: #38a169; color: white; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; margin-top: 8px; cursor: pointer; }
+    
+    .result-box { margin-top: 12px; padding: 12px; background: #edf2f7; border-radius: 6px; font-size: 13px; color: #2d3748; }
+    .timeline-item { background: #f7fafc; border-left: 3px solid #2b6cb0; padding: 8px 12px; margin-bottom: 8px; border-radius: 0 6px 6px 0; font-size: 12px; }
+
+    /* MODO ESCURO AUTOMÁTICO */
+    @media (prefers-color-scheme: dark) {
+      body { background-color: #121212; color: #e0e0e0; }
+      .card { background-color: #1e1e1e; box-shadow: 0 4px 12px rgba(0,0,0,0.5); }
+      h2 { color: #63b3ed; }
+      label { color: #e2e8f0; }
+      input, select { background-color: #2d3748; color: #ffffff; border-color: #4a5568; }
+      .nav-tabs { border-bottom-color: #4a5568; }
+      .tab-btn { background-color: #2d3748; color: #a0aec0; }
+      .tab-btn.active { background-color: #3182ce; color: #ffffff; }
+      .result-box, .timeline-item { background-color: #2d3748; color: #e2e8f0; }
+      .user-bar, .patient-bar { background-color: #2d3748; border-color: #4a5568; color: #e2e8f0; }
+    }
   </style>
 </head>
 <body>
 
 <div class="card">
   <h2>OrthoCalculator</h2>
+  <div class="subtitle">Análises de Moyers & Bolton na Nuvem</div>
 
+  <!-- BARRA DE AUTENTICAÇÃO -->
+  <div class="user-bar">
+    <span id="userStatus">Status: Desconectado</span>
+    <button id="btnLogin" class="btn-sm" onclick="fazerLogin()">Entrar</button>
+  </div>
+
+  <!-- BARRA DE SELEÇÃO DE PACIENTE -->
+  <div class="patient-bar">
+    <div>
+      <strong>Paciente:</strong> <span id="nomePacienteAtivo">Nenhum selecionado</span>
+    </div>
+    <button class="btn-sm" onclick="switchTab('pacientes')">Mudar</button>
+  </div>
+
+  <!-- NAVEGAÇÃO POR ABAS -->
   <div class="nav-tabs">
     <button class="tab-btn active" onclick="switchTab('moyers')">Moyers</button>
     <button class="tab-btn" onclick="switchTab('bolton')">Bolton</button>
+    <button class="tab-btn" onclick="switchTab('pacientes')">Pacientes</button>
   </div>
 
- <!-- ABA MOYERS -->
+  <!-- ABA MOYERS -->
   <div id="moyers" class="tab-content active">
-    <label for="sexo">Sexo do Paciente:</label>
-    <select id="sexo">
+    <label for="sexoMoyers">Sexo do Paciente:</label>
+    <select id="sexoMoyers">
       <option value="masculino">Masculino</option>
       <option value="feminino">Feminino</option>
     </select>
@@ -88,22 +96,22 @@
     </select>
 
     <label for="somaIncInf">Soma dos 4 Incisivos Inferiores (mm):</label>
-    <input type="number" id="somaIncInf" step="0.1" placeholder="Usado para consultar a tabela">
+    <input type="number" id="somaIncInf" step="0.1" placeholder="Ex: 22.5">
 
-    <!-- Este campo só é necessário se a arcada Superior for selecionada -->
     <div id="campoIncSup" style="display: none;">
       <label for="somaIncSup">Soma dos 4 Incisivos Superiores (mm):</label>
-      <input type="number" id="somaIncSup" step="0.1" placeholder="Para compor o perímetro superior">
+      <input type="number" id="somaIncSup" step="0.1" placeholder="Ex: 29.0">
     </div>
 
     <label for="espacoPresente">Perímetro Total Presente na Arcada (mm):</label>
-    <input type="number" id="espacoPresente" step="0.1" placeholder="Medida no modelo de gesso">
+    <input type="number" id="espacoPresente" step="0.1" placeholder="Medida no modelo">
 
     <button class="calc-btn" onclick="calcularMoyers()">Calcular Moyers</button>
 
     <div id="resMoyers" class="result-box" style="display:none;"></div>
+    <button id="btnSalvarMoyers" class="save-btn" style="display:none;" onclick="salvarAnaliseMoyers()">💾 Salvar na Ficha do Paciente</button>
   </div>
-  
+
   <!-- ABA BOLTON -->
   <div id="bolton" class="tab-content">
     <label for="antSup">Soma 6 Dentes Anteriores Superiores (mm):</label>
@@ -118,44 +126,107 @@
     <label for="totInf">Soma 12 Dentes Inferiores (mm):</label>
     <input type="number" id="totInf" step="0.1" placeholder="1º Molar a 1º Molar">
 
-    <button class="calc-btn" onclick="calcularBolton()">Calcular Discrepância</button>
+    <button class="calc-btn" onclick="calcularBolton()">Calcular Bolton</button>
 
     <div id="resBolton" class="result-box" style="display:none;"></div>
+    <button id="btnSalvarBolton" class="save-btn" style="display:none;" onclick="salvarAnaliseBolton()">💾 Salvar na Ficha do Paciente</button>
+  </div>
+
+  <!-- ABA PACIENTES & PRONTUÁRIO -->
+  <div id="pacientes" class="tab-content">
+    <h3>Novo Paciente</h3>
+    <label for="novoNome">Nome do Paciente:</label>
+    <input type="text" id="novoNome" placeholder="Ex: Maria Silva">
+    
+    <label for="novoProntuario">Número do Prontuário:</label>
+    <input type="text" id="novoProntuario" placeholder="Ex: 1042">
+
+    <button class="calc-btn" onclick="cadastrarPaciente()">+ Cadastrar Paciente</button>
+
+    <hr style="margin: 15px 0; border: 0; border-top: 1px solid #cbd5e0;">
+
+    <h3>Meus Pacientes</h3>
+    <select id="selectListaPacientes" onchange="selecionarPaciente()">
+      <option value="">-- Selecione um Paciente --</option>
+    </select>
+
+    <div id="historicoPaciente" style="margin-top: 15px;"></div>
   </div>
 </div>
 
 <script>
+  // CONFIGURAÇÃO DO FIREBASE (Substitua pelas chaves do seu console Firebase)
+  const firebaseConfig = {
+    apiKey: "SUA_API_KEY",
+    authDomain: "orthocalculator.firebaseapp.com",
+    projectId: "orthocalculator",
+    storageBucket: "orthocalculator.appspot.com",
+    messagingSenderId: "123456789",
+    appId: "1:123456789:web:abcde12345"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const auth = firebase.auth();
+
+  let usuarioLogado = null;
+  let pacienteAtivo = null;
+  let ultimoResultadoMoyers = null;
+  let ultimoResultadoBolton = null;
+
+  // TABELA MOYERS 75%
+  const tabelaMoyers75 = {
+    masculino: {
+      maxilar: { "19.5": 20.6, "20.0": 20.9, "20.5": 21.2, "21.0": 21.5, "21.5": 21.8, "22.0": 22.0, "22.5": 22.3, "23.0": 22.6, "23.5": 22.9, "24.0": 23.2, "24.5": 23.5, "25.0": 23.8, "25.5": 24.1, "26.0": 24.4, "26.5": 24.7, "27.0": 25.0 },
+      mandibula: { "19.5": 20.1, "20.0": 20.4, "20.5": 20.7, "21.0": 21.0, "21.5": 21.3, "22.0": 21.6, "22.5": 21.9, "23.0": 22.2, "23.5": 22.5, "24.0": 22.8, "24.5": 23.1, "25.0": 23.4, "25.5": 23.7, "26.0": 24.0, "26.5": 24.3, "27.0": 24.6 }
+    },
+    feminino: {
+      maxilar: { "19.5": 20.1, "20.0": 20.4, "20.5": 20.7, "21.0": 21.0, "21.5": 21.3, "22.0": 21.5, "22.5": 21.8, "23.0": 22.1, "23.5": 22.4, "24.0": 22.7, "24.5": 23.0, "25.0": 23.3, "25.5": 23.6, "26.0": 23.9, "26.5": 24.2, "27.0": 24.5 },
+      mandibula: { "19.5": 19.6, "20.0": 19.9, "20.5": 20.2, "21.0": 20.5, "21.5": 20.8, "22.0": 21.1, "22.5": 21.4, "23.0": 21.7, "23.5": 22.0, "24.0": 22.3, "24.5": 22.6, "25.0": 22.9, "25.5": 23.2, "26.0": 23.5, "26.5": 23.8, "27.0": 24.1 }
+    }
+  };
+
+  // NAVEGAÇÃO ENTRE ABAS
   function switchTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
     document.getElementById(tabId).classList.add('active');
-    event.currentTarget.classList.add('active');
+    
+    // Ativa a aba visualmente
+    const btnMap = { 'moyers': 0, 'bolton': 1, 'pacientes': 2 };
+    document.querySelectorAll('.tab-btn')[btnMap[tabId]].classList.add('active');
   }
 
-const tabelaMoyers75 = {
-    masculino: {
-      maxilar: { "19.5": 20.3, "20.0": 20.5, "20.5": 20.8, "21.0": 21, "21.5": 21.3, "22.0": 21.5, "22.5": 21.8, "23.0": 22, "23.5": 22.3, "24.0": 22.5, "24.5": 22.8, "25.0": 23, "25.5": 23.3 },
-      mandibula: { "19.5": 20.4, "20.0": 20.6, "20.5": 20.8, "21.0": 21.0, "21.5": 21.2, "22.0": 21.4, "22.5": 21.6, "23.0": 21.9, "23.5": 22.1, "24.0": 22.3, "24.5": 22.5, "25.0": 22.8, "25.5": 23 }
-    },
-    feminino: {
-      maxilar: { "19.5": 20.4, "20.0": 20.5, "20.5": 20.6, "21.0": 20.8, "21.5": 20.9, "22.0": 21, "22.5": 21.2, "23.0": 21.3, "23.5": 21.5, "24.0": 21.6, "24.5": 21.8, "25.0": 21.9, "25.5": 22.1 },
-      mandibula: { "19.5": 19.6, "20.0": 19.8, "20.5": 20.1, "21.0": 20.3, "21.5": 20.6, "22.0": 20.8, "22.5": 21.1, "23.0": 21.3, "23.5": 21.6, "24.0": 21.9, "24.5": 22.1, "25.0": 22.4, "25.5": 22.7 }
-    }
-  };
-
- // Função para mostrar/esconder a soma dos incisivos superiores conforme a arcada selecionada
   function toggleIncisivosSup() {
     const arcada = document.getElementById('arcada').value;
-    const campoSup = document.getElementById('campoIncSup');
-    if (arcada === 'superior') {
-      campoSup.style.display = 'block';
+    document.getElementById('campoIncSup').style.display = (arcada === 'superior') ? 'block' : 'none';
+  }
+
+  // AUTENTICAÇÃO
+  auth.onAuthStateChanged(user => {
+    usuarioLogado = user;
+    if (user) {
+      document.getElementById('userStatus').innerText = "Doutor(a) conectado(a)";
+      document.getElementById('btnLogin').innerText = "Sair";
+      carregarPacientes();
     } else {
-      campoSup.style.display = 'none';
+      document.getElementById('userStatus').innerText = "Modo Offline / Desconectado";
+      document.getElementById('btnLogin').innerText = "Entrar";
+    }
+  });
+
+  function fazerLogin() {
+    if (usuarioLogado) {
+      auth.signOut();
+    } else {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider).catch(error => alert("Erro ao autenticar: " + error.message));
     }
   }
 
-function calcularMoyers() {
-    const sexo = document.getElementById('sexo').value;
+  // CÁLCULO MOYERS
+  function calcularMoyers() {
+    const sexo = document.getElementById('sexoMoyers').value;
     const arcada = document.getElementById('arcada').value;
     const somaIncInf = parseFloat(document.getElementById('somaIncInf').value);
     const espacoPresente = parseFloat(document.getElementById('espacoPresente').value);
@@ -164,60 +235,53 @@ function calcularMoyers() {
       alert("Insira a soma dos incisivos inferiores entre 19.5 e 27.0 mm.");
       return;
     }
-
     if (isNaN(espacoPresente)) {
-      alert("Por favor, insira o perímetro presente na arcada.");
+      alert("Insira o perímetro presente na arcada.");
       return;
     }
 
-    // Garante chave com formato "XX.X"
     const valorArredondado = (Math.round(somaIncInf * 2) / 2).toFixed(1);
-
     let espacoRequeridoTotal = 0;
-    let nomeArcada = '';
 
     if (arcada === 'inferior') {
-      nomeArcada = 'Inferior (Mandíbula)';
       const necInfUmLado = tabelaMoyers75[sexo].mandibula[valorArredondado];
-      
-      if (necInfUmLado === undefined) {
-        alert("Erro ao buscar valor na tabela.");
-        return;
-      }
       espacoRequeridoTotal = somaIncInf + (necInfUmLado * 2);
-
     } else {
-      nomeArcada = 'Superior (Maxilar)';
       const somaIncSup = parseFloat(document.getElementById('somaIncSup').value);
-      
       if (isNaN(somaIncSup)) {
-        alert("Para calcular a arcada superior, informe também a soma dos incisivos superiores.");
+        alert("Para calcular a arcada superior, informe a soma dos incisivos superiores.");
         return;
       }
-
       const necSupUmLado = tabelaMoyers75[sexo].maxilar[valorArredondado];
-
-      if (necSupUmLado === undefined) {
-        alert("Erro ao buscar valor na tabela.");
-        return;
-      }
       espacoRequeridoTotal = somaIncSup + (necSupUmLado * 2);
     }
 
     const discrepancia = (espacoPresente - espacoRequeridoTotal).toFixed(1);
     const cor = discrepancia < 0 ? 'red' : 'green';
 
-    let html = `<strong>Resultado - Arcada ${nomeArcada}</strong><br>`;
-    html += `Sexo: ${sexo.charAt(0).toUpperCase() + sexo.slice(1)} | Tabela: ${valorArredondado} mm<br><br>`;
-    html += `Espaço Requerido Total: <strong>${espacoRequeridoTotal.toFixed(1)} mm</strong><br>`;
-    html += `Espaço Presente: <strong>${espacoPresente.toFixed(1)} mm</strong><br>`;
-    html += `Discrepância de Modelo: <strong style="color:${cor}; font-size: 16px;">${discrepancia > 0 ? '+' : ''}${discrepancia} mm</strong>`;
+    ultimoResultadoMoyers = {
+      tipo: 'Moyers',
+      arcada: arcada,
+      sexo: sexo,
+      somaIncInf: somaIncInf,
+      espacoPresente: espacoPresente,
+      espacoRequeridoTotal: espacoRequeridoTotal.toFixed(1),
+      discrepancia: discrepancia,
+      data: new Date().toLocaleDateString('pt-BR')
+    };
 
-    const res = document.getElementById('resMoyers');
-    res.innerHTML = html;
-    res.style.display = 'block';
+    let html = `<strong>Resultado Moyers (${arcada.toUpperCase()})</strong><br>`;
+    html += `Espaço Requerido: <strong>${espacoRequeridoTotal.toFixed(1)} mm</strong><br>`;
+    html += `Discrepância de Modelo: <strong style="color:${cor}; font-size:15px;">${discrepancia > 0 ? '+' : ''}${discrepancia} mm</strong>`;
+
+    document.getElementById('resMoyers').innerHTML = html;
+    document.getElementById('resMoyers').style.display = 'block';
+    if (pacienteAtivo && usuarioLogado) {
+      document.getElementById('btnSalvarMoyers').style.display = 'block';
+    }
   }
-  
+
+  // CÁLCULO BOLTON
   function calcularBolton() {
     const antSup = parseFloat(document.getElementById('antSup').value);
     const antInf = parseFloat(document.getElementById('antInf').value);
@@ -229,40 +293,131 @@ function calcularMoyers() {
       return;
     }
 
-    let html = '';
-    
-    // Análise Anterior
     const razAnt = ((antInf / antSup) * 100).toFixed(1);
-    html += `<strong>Razão Anterior: ${razAnt}%</strong> (Ideal: 77.2%)<br>`;
-    if (razAnt > 77.2) {
-      const excessoInf = (antInf - (antSup * 0.772)).toFixed(1);
-      html += `Excesso de massa inferior anterior: <strong>${excessoInf} mm</strong><br>`;
-    } else if (razAnt < 77.2) {
-      const excessoSup = (antSup - (antInf / 0.772)).toFixed(1);
-      html += `Excesso de massa superior anterior: <strong>${excessoSup} mm</strong><br>`;
-    } else {
-      html += `Proporção anterior ideal.<br>`;
-    }
+    let html = `<strong>Razão Anterior: ${razAnt}%</strong> (Ideal: 77.2%)<br>`;
+    
+    ultimoResultadoBolton = {
+      tipo: 'Bolton',
+      antSup: antSup,
+      antInf: antInf,
+      razAnt: razAnt,
+      data: new Date().toLocaleDateString('pt-BR')
+    };
 
-    // Análise Total
     if (totSup && totInf) {
-      html += `<br>`;
       const razTot = ((totInf / totSup) * 100).toFixed(1);
-      html += `<strong>Razão Total: ${razTot}%</strong> (Ideal: 91.3%)<br>`;
-      if (razTot > 91.3) {
-        const excessoTotInf = (totInf - (totSup * 0.913)).toFixed(1);
-        html += `Excesso de massa inferior total: <strong>${excessoTotInf} mm</strong>`;
-      } else if (razTot < 91.3) {
-        const excessoTotSup = (totSup - (totInf / 0.913)).toFixed(1);
-        html += `Excesso de massa superior total: <strong>${excessoTotSup} mm</strong>`;
-      } else {
-        html += `Proporção total ideal.`;
-      }
+      html += `<strong>Razão Total: ${razTot}%</strong> (Ideal: 91.3%)`;
+      ultimoResultadoBolton.totSup = totSup;
+      ultimoResultadoBolton.totInf = totInf;
+      ultimoResultadoBolton.razTot = razTot;
     }
 
-    const res = document.getElementById('resBolton');
-    res.innerHTML = html;
-    res.style.display = 'block';
+    document.getElementById('resBolton').innerHTML = html;
+    document.getElementById('resBolton').style.display = 'block';
+    if (pacienteAtivo && usuarioLogado) {
+      document.getElementById('btnSalvarBolton').style.display = 'block';
+    }
+  }
+
+  // GESTÃO DE PACIENTES NO FIREBASE
+  async function cadastrarPaciente() {
+    if (!usuarioLogado) return alert("Faça login para cadastrar pacientes na nuvem.");
+    const nome = document.getElementById('novoNome').value;
+    const prontuario = document.getElementById('novoProntuario').value;
+
+    if (!nome) return alert("Informe o nome do paciente.");
+
+    await db.collection('pacientes').add({
+      uidDoutor: usuarioLogado.uid,
+      nome: nome,
+      prontuario: prontuario,
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    document.getElementById('novoNome').value = '';
+    document.getElementById('novoProntuario').value = '';
+    carregarPacientes();
+  }
+
+  async function carregarPacientes() {
+    if (!usuarioLogado) return;
+    const snapshot = await db.collection('pacientes')
+                              .where('uidDoutor', '==', usuarioLogado.uid)
+                              .get();
+
+    const select = document.getElementById('selectListaPacientes');
+    select.innerHTML = '<option value="">-- Selecione um Paciente --</option>';
+
+    snapshot.forEach(doc => {
+      const p = doc.data();
+      select.innerHTML += `<option value="${doc.id}">${p.nome} (Pront: ${p.prontuario || 'N/A'})</option>`;
+    });
+  }
+
+  async function selecionarPaciente() {
+    const id = document.getElementById('selectListaPacientes').value;
+    if (!id) {
+      pacienteAtivo = null;
+      document.getElementById('nomePacienteAtivo').innerText = "Nenhum selecionado";
+      document.getElementById('historicoPaciente').innerHTML = "";
+      return;
+    }
+
+    const doc = await db.collection('pacientes').doc(id).get();
+    pacienteAtivo = { id: doc.id, ...doc.data() };
+    document.getElementById('nomePacienteAtivo').innerText = pacienteAtivo.nome;
+
+    carregarHistorico();
+  }
+
+  async function carregarHistorico() {
+    if (!pacienteAtivo) return;
+    const snapshot = await db.collection('pacientes')
+                              .doc(pacienteAtivo.id)
+                              .collection('analises')
+                              .orderBy('criadoEm', 'desc')
+                              .get();
+
+    let html = '<h4>Histórico do Paciente</h4>';
+    if (snapshot.empty) {
+      html += '<p style="font-size:12px;">Nenhuma análise salva ainda.</p>';
+    } else {
+      snapshot.forEach(doc => {
+        const a = doc.data();
+        if (a.tipo === 'Moyers') {
+          html += `<div class="timeline-item">
+                    <strong>Moyers (${a.arcada})</strong> - ${a.data}<br>
+                    Discrepância: <strong>${a.discrepancia} mm</strong> (Req: ${a.espacoRequeridoTotal}mm)
+                   </div>`;
+        } else if (a.tipo === 'Bolton') {
+          html += `<div class="timeline-item">
+                    <strong>Bolton</strong> - ${a.data}<br>
+                    Razão Anterior: ${a.razAnt}% ${a.razTot ? '| Razão Total: ' + a.razTot + '%' : ''}
+                   </div>`;
+        }
+      });
+    }
+    document.getElementById('historicoPaciente').innerHTML = html;
+  }
+
+  async function salvarAnaliseMoyers() {
+    if (!pacienteAtivo || !ultimoResultadoMoyers) return;
+    await db.collection('pacientes').doc(pacienteAtivo.id).collection('analises').add({
+      ...ultimoResultadoMoyers,
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    alert("Análise de Moyers salva na ficha do paciente!");
+    carregarHistorico();
+  }
+
+  async function salvarAnaliseBolton() {
+    if (!pacienteAtivo || !ultimoResultadoBolton) return;
+    await db.collection('pacientes').doc(pacienteAtivo.id).collection('analises').add({
+      ...ultimoResultadoBolton,
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    alert("Análise de Bolton salva na ficha do paciente!");
+    carregarHistorico();
   }
 </script>
 
