@@ -132,7 +132,7 @@
     <button id="btnSalvarBolton" class="save-btn" style="display:none;" onclick="salvarAnaliseBolton()">💾 Salvar na Ficha do Paciente</button>
   </div>
 
-  <!-- ABA PACIENTES & PRONTUÁRIO -->
+ <!-- ABA PACIENTES & PRONTUÁRIO -->
   <div id="pacientes" class="tab-content">
     <h3>Novo Paciente</h3>
     <label for="novoNome">Nome do Paciente:</label>
@@ -150,9 +150,13 @@
       <option value="">-- Selecione um Paciente --</option>
     </select>
 
+    <!-- BOTÃO DE EXCLUIR (Aparece apenas quando um paciente é selecionado) -->
+    <button id="btnExcluirPaciente" class="save-btn" style="background-color: #e53e3e; display: none; margin-top: 10px;" onclick="excluirPaciente()">
+      🗑️ Excluir Paciente Selecionado
+    </button>
+
     <div id="historicoPaciente" style="margin-top: 15px;"></div>
   </div>
-</div>
 
 <script>
   // CONFIGURAÇÃO DO FIREBASE (Substitua pelas chaves do seu console Firebase)
@@ -322,90 +326,115 @@ const firebaseConfig = {
     }
   }
 
-  // GESTÃO DE PACIENTES NO FIREBASE
- async function cadastrarPaciente() {
-    if (!usuarioLogado) return alert("Faça login para cadastrar pacientes na nuvem.");
-    const nome = document.getElementById('novoNome').value;
-    const prontuario = document.getElementById('novoProntuario').value;
+  let unsubscribePacientes = null;
+  let unsubscribeHistorico = null;
 
-    if (!nome) return alert("Informe o nome do paciente.");
-
-    try {
-      await db.collection('pacientes').add({
-        uidDoutor: usuarioLogado.uid,
-        nome: nome,
-        prontuario: prontuario,
-        criadoEm: firebase.firestore.FieldValue.serverTimestamp()
-      });
-
-      alert("Paciente " + nome + " cadastrado com sucesso!");
-      document.getElementById('novoNome').value = '';
-      document.getElementById('novoProntuario').value = '';
-      carregarPacientes();
-    } catch (error) {
-      alert("Erro ao cadastrar paciente: " + error.message);
-    }
-  }
-
-  async function carregarPacientes() {
+  // CARREGAR PACIENTES EM TEMPO REAL (FUNCIONA OFFLINE)
+  function carregarPacientes() {
     if (!usuarioLogado) return;
-    const snapshot = await db.collection('pacientes')
-                              .where('uidDoutor', '==', usuarioLogado.uid)
-                              .get();
+    
+    // Cancela escutador anterior para evitar duplicidade
+    if (unsubscribePacientes) unsubscribePacientes();
 
-    const select = document.getElementById('selectListaPacientes');
-    select.innerHTML = '<option value="">-- Selecione um Paciente --</option>';
+    unsubscribePacientes = db.collection('pacientes')
+      .where('uidDoutor', '==', usuarioLogado.uid)
+      .onSnapshot(snapshot => {
+        const select = document.getElementById('selectListaPacientes');
+        const valorSelecionadoAtual = select.value;
+        select.innerHTML = '<option value="">-- Selecione um Paciente --</option>';
 
-    snapshot.forEach(doc => {
-      const p = doc.data();
-      select.innerHTML += `<option value="${doc.id}">${p.nome} (Pront: ${p.prontuario || 'N/A'})</option>`;
-    });
+        snapshot.forEach(doc => {
+          const p = doc.data();
+          select.innerHTML += `<option value="${doc.id}">${p.nome} (Pront: ${p.prontuario || 'N/A'})</option>`;
+        });
+
+        // Mantém selecionado o paciente que já estava ativo
+        if (pacienteAtivo) {
+          select.value = pacienteAtivo.id;
+        }
+      }, error => {
+        console.error("Erro ao carregar pacientes:", error);
+      });
   }
 
+  // SELECIONAR PACIENTE
   async function selecionarPaciente() {
     const id = document.getElementById('selectListaPacientes').value;
+    const btnExcluir = document.getElementById('btnExcluirPaciente');
+
     if (!id) {
       pacienteAtivo = null;
       document.getElementById('nomePacienteAtivo').innerText = "Nenhum selecionado";
       document.getElementById('historicoPaciente').innerHTML = "";
+      btnExcluir.style.display = 'none';
       return;
     }
 
     const doc = await db.collection('pacientes').doc(id).get();
     pacienteAtivo = { id: doc.id, ...doc.data() };
     document.getElementById('nomePacienteAtivo').innerText = pacienteAtivo.nome;
+    btnExcluir.style.display = 'block';
 
     carregarHistorico();
   }
 
-  async function carregarHistorico() {
+  // CARREGAR HISTÓRICO EM TEMPO REAL (FUNCIONA OFFLINE)
+  function carregarHistorico() {
     if (!pacienteAtivo) return;
-    const snapshot = await db.collection('pacientes')
-                              .doc(pacienteAtivo.id)
-                              .collection('analises')
-                              .orderBy('criadoEm', 'desc')
-                              .get();
 
-    let html = '<h4>Histórico do Paciente</h4>';
-    if (snapshot.empty) {
-      html += '<p style="font-size:12px;">Nenhuma análise salva ainda.</p>';
-    } else {
-      snapshot.forEach(doc => {
-        const a = doc.data();
-        if (a.tipo === 'Moyers') {
-          html += `<div class="timeline-item">
-                    <strong>Moyers (${a.arcada})</strong> - ${a.data}<br>
-                    Discrepância: <strong>${a.discrepancia} mm</strong> (Req: ${a.espacoRequeridoTotal}mm)
-                   </div>`;
-        } else if (a.tipo === 'Bolton') {
-          html += `<div class="timeline-item">
-                    <strong>Bolton</strong> - ${a.data}<br>
-                    Razão Anterior: ${a.razAnt}% ${a.razTot ? '| Razão Total: ' + a.razTot + '%' : ''}
-                   </div>`;
+    if (unsubscribeHistorico) unsubscribeHistorico();
+
+    unsubscribeHistorico = db.collection('pacientes')
+      .doc(pacienteAtivo.id)
+      .collection('analises')
+      .orderBy('criadoEm', 'desc')
+      .onSnapshot(snapshot => {
+        let html = '<h4>Histórico do Paciente</h4>';
+        if (snapshot.empty) {
+          html += '<p style="font-size:12px;">Nenhuma análise salva ainda.</p>';
+        } else {
+          snapshot.forEach(doc => {
+            const a = doc.data();
+            if (a.tipo === 'Moyers') {
+              html += `<div class="timeline-item">
+                        <strong>Moyers (${a.arcada.toUpperCase()})</strong> - ${a.data}<br>
+                        Discrepância: <strong>${a.discrepancia} mm</strong> (Req: ${a.espacoRequeridoTotal}mm)
+                       </div>`;
+            } else if (a.tipo === 'Bolton') {
+              html += `<div class="timeline-item">
+                        <strong>Bolton</strong> - ${a.data}<br>
+                        Razão Anterior: ${a.razAnt}% ${a.razTot ? '| Razão Total: ' + a.razTot + '%' : ''}
+                       </div>`;
+            }
+          });
         }
+        document.getElementById('historicoPaciente').innerHTML = html;
       });
+  }
+
+  // EXCLUIR PACIENTE
+  async function excluirPaciente() {
+    if (!pacienteAtivo) return alert("Nenhum paciente selecionado.");
+
+    const confirmacao = confirm(`Tem certeza que deseja excluir o paciente "${pacienteAtivo.nome}" e todo o seu histórico?\nEsta ação não pode ser desfeita.`);
+    
+    if (!confirmacao) return;
+
+    try {
+      await db.collection('pacientes').doc(pacienteAtivo.id).delete();
+      alert("Paciente excluído com sucesso!");
+
+      // Limpa a seleção ativa
+      pacienteAtivo = null;
+      document.getElementById('nomePacienteAtivo').innerText = "Nenhum selecionado";
+      document.getElementById('selectListaPacientes').value = "";
+      document.getElementById('historicoPaciente').innerHTML = "";
+      document.getElementById('btnExcluirPaciente').style.display = 'none';
+      document.getElementById('btnSalvarMoyers').style.display = 'none';
+      document.getElementById('btnSalvarBolton').style.display = 'none';
+    } catch (error) {
+      alert("Erro ao excluir paciente: " + error.message);
     }
-    document.getElementById('historicoPaciente').innerHTML = html;
   }
 
   async function salvarAnaliseMoyers() {
