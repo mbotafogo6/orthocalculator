@@ -58,7 +58,7 @@
 
 <div class="card">
   <h2>OrthoCalculator</h2>
-  <div class="subtitle">Análises de Moyers & Bolton na Nuvem</div>
+  <div class="subtitle">Calculadora de Discrepância de Modelo</div>
 
   <!-- BARRA DE AUTENTICAÇÃO -->
   <div class="user-bar">
@@ -156,14 +156,17 @@
 
 <script>
   // CONFIGURAÇÃO DO FIREBASE (Substitua pelas chaves do seu console Firebase)
-  const firebaseConfig = {
-    apiKey: "SUA_API_KEY",
-    authDomain: "orthocalculator.firebaseapp.com",
-    projectId: "orthocalculator",
-    storageBucket: "orthocalculator.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "1:123456789:web:abcde12345"
-  };
+  // Configuração do Firebase para o seu aplicativo web
+const firebaseConfig = {
+  apiKey: "SUA_API_KEY", // Substitua pelo sua API Key do Firebase
+  authDomain: "orthocalculator-cb56f.firebaseapp.com",
+  projectId: "orthocalculator-cb56f",
+  storageBucket: "orthocalculator-cb56f.firebasestorage.app",
+  messagingSenderId: "495473470455",
+  appId: "SUA_APP_ID", // Substitua pelo ID do seu aplicativo Web
+  measurementId: "G-XXXXXXXXXX" // Opcional (se usar Google Analytics)
+};
+
 
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
