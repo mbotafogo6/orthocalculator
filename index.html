@@ -95,7 +95,7 @@
   <main class="content-area">
 
     <!-- ABA MOYERS -->
-    <div id="moyers" class="tab-content active card">
+    <div id="moyers" class="tab-content card">
       <h3>Análise de Moyers</h3>
       
       <label for="sexoMoyers">Sexo do Paciente:</label>
@@ -150,7 +150,7 @@
     </div>
 
     <!-- ABA PACIENTES -->
-    <div id="pacientes" class="tab-content card">
+    <div id="pacientes" class="tab-content active card">
       <h3>Gerenciar Pacientes</h3>
       
       <label for="selectListaPacientes">Meus Pacientes:</label>
@@ -178,7 +178,7 @@
 
   <!-- NAVEGAÇÃO INFERIOR -->
   <nav class="bottom-nav">
-    <div class="nav-item active" onclick="switchTab('moyers', this)">
+    <div class="nav-item" onclick="switchTab('moyers', this)">
       <span class="nav-icon">🦷</span>
       Moyers
     </div>
@@ -186,7 +186,7 @@
       <span class="nav-icon">📐</span>
       Bolton
     </div>
-    <div class="nav-item" onclick="switchTab('pacientes', this)">
+    <div class="nav-item active" onclick="switchTab('pacientes', this)">
       <span class="nav-icon">📁</span>
       Pacientes
     </div>
