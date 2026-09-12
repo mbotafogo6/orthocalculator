@@ -9,7 +9,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-
+  
   <!-- Gerador de PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
@@ -47,7 +47,7 @@
     }
     
     button.calc-btn { width: 100%; padding: 12px; background: #2b6cb0; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; margin-top: 20px; cursor: pointer; }
-    button.save-btn { width: 100%; padding: 12px; background: #2b6cb0; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; margin-top: 10px; cursor: pointer; }
+    button.save-btn { width: 100%; padding: 12px; background: #38a169; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; margin-top: 10px; cursor: pointer; }
 
     /* NAVEGAÇÃO INFERIOR FLUTUANTE (BOTTOM NAV) */
     .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 10; padding-bottom: env(safe-area-inset-bottom); }
@@ -84,7 +84,7 @@
 
   <!-- CABEÇALHO FIXO -->
   <header class="header">
-    <h2>🦷 OrthoCalculator</h2>
+    <h2>🦷 OrthoCalc</h2>
     <button id="btnLogin" class="login-btn" onclick="fazerLogin()">Entrar</button>
   </header>
 
@@ -96,6 +96,32 @@
 
   <!-- ÁREA ROLÁVEL CENTRAL -->
   <main class="content-area">
+
+    <!-- ABA PACIENTES (Agora é a primeira aba ativa) -->
+    <div id="pacientes" class="tab-content active card">
+      <h3>Gerenciar Pacientes</h3>
+      
+      <label for="selectListaPacientes">Meus Pacientes:</label>
+      <select id="selectListaPacientes" onchange="selecionarPaciente()">
+        <option value="">-- Selecione um Paciente --</option>
+      </select>
+
+      <div id="historicoPaciente" style="margin-top: 15px;"></div>
+
+      <button id="btnGerarPDF" class="save-btn" style="background-color: #d69e2e; display: none; margin-top: 10px;" onclick="gerarPDF()">📄 Baixar Prontuário em PDF</button>
+      <button id="btnExcluirPaciente" class="save-btn" style="background-color: #e53e3e; display: none; margin-top: 10px;" onclick="excluirPaciente()">🗑️ Excluir Paciente</button>
+
+      <hr style="margin: 25px 0; border: 0; border-top: 1px solid #e2e8f0;">
+
+      <h3>Novo Paciente</h3>
+      <label for="novoNome">Nome do Paciente:</label>
+      <input type="text" id="novoNome" placeholder="Ex: Maria Silva">
+      
+      <label for="novoProntuario">Número do Prontuário:</label>
+      <input type="text" id="novoProntuario" placeholder="Ex: 1042">
+
+      <button class="calc-btn" style="background-color: #4a5568;" onclick="cadastrarPaciente()">+ Cadastrar</button>
+    </div>
 
     <!-- ABA MOYERS -->
     <div id="moyers" class="tab-content card">
@@ -152,38 +178,9 @@
       <button id="btnSalvarBolton" class="save-btn" style="display:none;" onclick="salvarAnaliseBolton()">💾 Salvar na Ficha</button>
     </div>
 
-    <!-- ABA PACIENTES -->
-    <div id="pacientes" class="tab-content active card">
-      <h3>Gerenciar Pacientes</h3>
-      
-      <label for="selectListaPacientes">Meus Pacientes:</label>
-      <select id="selectListaPacientes" onchange="selecionarPaciente()">
-        <option value="">-- Selecione um Paciente --</option>
-      </select>
-
-      <div id="historicoPaciente" style="margin-top: 15px;"></div>
-
-      <button id="btnExcluirPaciente" class="save-btn" style="background-color: #e53e3e; display: none; margin-top: 10px;" onclick="excluirPaciente()">🗑️ Excluir Paciente</button>
-
-      <!-- NOVO BOTÃO AQUI -->
-      <button id="btnGerarPDF" class="save-btn" style="background-color: #d69e2e; display: none; margin-top: 10px;" onclick="gerarPDF()">📄 Baixar Prontuário em PDF</button>
-
-      <hr style="margin: 25px 0; border: 0; border-top: 1px solid #e2e8f0;">
-
-      <h3>Novo Paciente</h3>
-      <label for="novoNome">Nome do Paciente:</label>
-      <input type="text" id="novoNome" placeholder="Ex: Maria Silva">
-      
-      <label for="novoProntuario">Número do Prontuário:</label>
-      <input type="text" id="novoProntuario" placeholder="Ex: 1042">
-
-      <button class="calc-btn" style="background-color: #4a5568;" onclick="cadastrarPaciente()">+ Cadastrar</button>
-    </div>
-
   </main>
 
   <!-- NAVEGAÇÃO INFERIOR -->
-<!-- NAVEGAÇÃO INFERIOR -->
   <nav class="bottom-nav">
     <div class="nav-item active" onclick="switchTab('pacientes', this)">
       <span class="nav-icon">📁</span>
@@ -198,6 +195,7 @@
       Bolton
     </div>
   </nav>
+
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyCQ482Mwhjq_mQiOgDolXk2XIdbkgnTkkE",
@@ -229,7 +227,7 @@
     }
   };
 
- function switchTab(tabId, element = null) {
+  function switchTab(tabId, element = null) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     document.getElementById(tabId).classList.add('active');
@@ -237,12 +235,11 @@
     if(element) {
       element.classList.add('active');
     } else {
-      // Nova ordem: pacientes é o 0, moyers é o 1, bolton é o 2
       const index = tabId === 'pacientes' ? 0 : (tabId === 'moyers' ? 1 : 2);
       document.querySelectorAll('.nav-item')[index].classList.add('active');
     }
   }
-  
+
   function toggleIncisivosSup() {
     const arcada = document.getElementById('arcada').value;
     document.getElementById('campoIncSup').style.display = (arcada === 'superior') ? 'block' : 'none';
@@ -418,6 +415,7 @@
   async function selecionarPaciente() {
     const id = document.getElementById('selectListaPacientes').value;
     const btnExcluir = document.getElementById('btnExcluirPaciente');
+    const btnPDF = document.getElementById('btnGerarPDF');
     const banner = document.getElementById('patientBanner');
 
     if (!id) {
@@ -425,6 +423,7 @@
       document.getElementById('nomePacienteAtivo').innerText = "Nenhum selecionado";
       document.getElementById('historicoPaciente').innerHTML = "";
       btnExcluir.style.display = 'none';
+      btnPDF.style.display = 'none';
       banner.classList.add('inactive');
       document.getElementById('btnSalvarMoyers').style.display = 'none';
       document.getElementById('btnSalvarBolton').style.display = 'none';
@@ -436,6 +435,7 @@
       pacienteAtivo = { id: doc.id, ...doc.data() };
       document.getElementById('nomePacienteAtivo').innerText = pacienteAtivo.nome;
       btnExcluir.style.display = 'block';
+      btnPDF.style.display = 'block';
       banner.classList.remove('inactive');
 
       carregarHistorico();
@@ -518,53 +518,6 @@
     }
   }
 
-
-function gerarPDF() {
-    if (!pacienteAtivo) return;
-
-    // 1. Criamos um container temporário e escondido com o layout do PDF
-    const conteudoPDF = document.createElement('div');
-    conteudoPDF.style.padding = '30px';
-    conteudoPDF.style.fontFamily = 'Arial, sans-serif';
-    conteudoPDF.style.color = '#000'; // Força letra preta mesmo no modo escuro
-
-    // 2. Montamos o cabeçalho do documento
-    conteudoPDF.innerHTML = `
-      <div style="text-align: center; border-bottom: 2px solid #2b6cb0; margin-bottom: 20px; padding-bottom: 10px;">
-        <h2 style="color: #2b6cb0; margin: 0;">OrthoCalc - Relatório Ortodôntico</h2>
-      </div>
-      <div style="margin-bottom: 20px; font-size: 14px;">
-        <p><strong>Paciente:</strong> ${pacienteAtivo.nome}</p>
-        <p><strong>Prontuário:</strong> ${pacienteAtivo.prontuario || 'Não informado'}</p>
-        <p><strong>Data de Emissão:</strong> ${new Date().toLocaleDateString('pt-BR')}</p>
-      </div>
-    `;
-
-    // 3. Copiamos o histórico atual da tela
-    const historicoAtual = document.getElementById('historicoPaciente').innerHTML;
-    const historicoContainer = document.createElement('div');
-    historicoContainer.innerHTML = historicoAtual;
-
-    // 4. Removemos as lixeiras do histórico copiado (para não saírem no PDF)
-    const botoesLixeira = historicoContainer.querySelectorAll('button');
-    botoesLixeira.forEach(btn => btn.remove());
-
-    // 5. Juntamos tudo
-    conteudoPDF.appendChild(historicoContainer);
-
-    // 6. Configurações de qualidade e tamanho do PDF
-    const opcoes = {
-      margin:       10,
-      filename:     `Prontuario_${pacienteAtivo.nome.replace(/\s+/g, '_')}.pdf`,
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2 },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
-    // 7. Manda gerar e baixar!
-    html2pdf().set(opcoes).from(conteudoPDF).save();
-  }
-  
   async function salvarAnaliseMoyers() {
     if (!pacienteAtivo || !ultimoResultadoMoyers) return;
     try {
@@ -589,6 +542,66 @@ function gerarPDF() {
     } catch(e) {
       console.error("Erro ao salvar Bolton", e);
     }
+  }
+
+  // Função para gerar PDF
+  function gerarPDF() {
+    if (!pacienteAtivo) return;
+
+    // Se a biblioteca html2pdf não carregou, exibe aviso
+    if (typeof html2pdf === 'undefined') {
+      alert("O gerador de PDF ainda está carregando. Tente novamente em alguns segundos ou verifique sua internet.");
+      return;
+    }
+
+    const conteudoPDF = document.createElement('div');
+    conteudoPDF.style.padding = '30px';
+    conteudoPDF.style.fontFamily = 'Arial, sans-serif';
+    conteudoPDF.style.color = '#000';
+
+    conteudoPDF.innerHTML = `
+      <div style="text-align: center; border-bottom: 2px solid #2b6cb0; margin-bottom: 20px; padding-bottom: 10px;">
+        <h2 style="color: #2b6cb0; margin: 0;">OrthoCalc - Relatório Ortodôntico</h2>
+      </div>
+      <div style="margin-bottom: 20px; font-size: 14px;">
+        <p><strong>Paciente:</strong> ${pacienteAtivo.nome}</p>
+        <p><strong>Prontuário:</strong> ${pacienteAtivo.prontuario || 'Não informado'}</p>
+        <p><strong>Data de Emissão:</strong> ${new Date().toLocaleDateString('pt-BR')}</p>
+      </div>
+    `;
+
+    const historicoAtual = document.getElementById('historicoPaciente').innerHTML;
+    const historicoContainer = document.createElement('div');
+    historicoContainer.innerHTML = historicoAtual;
+
+    const botoesLixeira = historicoContainer.querySelectorAll('button');
+    botoesLixeira.forEach(btn => btn.remove());
+
+    conteudoPDF.appendChild(historicoContainer);
+
+    const opcoes = {
+      margin:       10,
+      filename:     `Prontuario_${pacienteAtivo.nome.replace(/\s+/g, '_')}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    // Alerta o usuário que começou (o processo pode levar de 1 a 3 segundos)
+    const btnPDF = document.getElementById('btnGerarPDF');
+    const textoOriginal = btnPDF.innerText;
+    btnPDF.innerText = "⏳ Gerando...";
+    btnPDF.disabled = true;
+
+    html2pdf().set(opcoes).from(conteudoPDF).save().then(() => {
+      btnPDF.innerText = textoOriginal;
+      btnPDF.disabled = false;
+    }).catch(err => {
+      alert("Erro ao gerar o PDF.");
+      console.error(err);
+      btnPDF.innerText = textoOriginal;
+      btnPDF.disabled = false;
+    });
   }
 </script>
 
