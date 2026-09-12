@@ -475,9 +475,8 @@ auth.onAuthStateChanged(user => {
   }
 
   // CARREGAR HISTÓRICO EM TEMPO REAL (FUNCIONA OFFLINE)
-  function carregarHistorico() {
+function carregarHistorico() {
     if (!pacienteAtivo) return;
-
     if (unsubscribeHistorico) unsubscribeHistorico();
 
     unsubscribeHistorico = db.collection('pacientes')
@@ -491,19 +490,33 @@ auth.onAuthStateChanged(user => {
         } else {
           snapshot.forEach(doc => {
             const a = doc.data();
+            const analiseId = doc.id; // Pegamos o ID único dessa análise
+            
+            // Botão de lixeira com estilo embutido
+            const btnExcluirHtml = `<button onclick="excluirAnalise('${analiseId}')" style="background:transparent; border:none; cursor:pointer; font-size:16px; padding:0; color:#e53e3e;" title="Excluir Análise">🗑️</button>`;
+
             if (a.tipo === 'Moyers') {
               html += `<div class="timeline-item">
-                        <strong>Moyers (${a.arcada.toUpperCase()})</strong> - ${a.data}<br>
+                        <div style="display:flex; justify-content: space-between; align-items: start;">
+                          <span><strong>Moyers (${a.arcada.toUpperCase()})</strong> - ${a.data}</span>
+                          ${btnExcluirHtml}
+                        </div>
                         Discrepância: <strong>${a.discrepancia} mm</strong> (Req: ${a.espacoRequeridoTotal}mm)
                        </div>`;
             } else if (a.tipo === 'Bolton') {
               html += `<div class="timeline-item">
-                        <strong>Bolton</strong> - ${a.data}<br>
+                        <div style="display:flex; justify-content: space-between; align-items: start;">
+                          <span><strong>Bolton</strong> - ${a.data}</span>
+                          ${btnExcluirHtml}
+                        </div>
                         Razão Anterior: ${a.razAnt}% ${a.razTot ? '| Razão Total: ' + a.razTot + '%' : ''}
                        </div>`;
             }
           });
         }
+        document.getElementById('historicoPaciente').innerHTML = html;
+      });
+  }
         document.getElementById('historicoPaciente').innerHTML = html;
       });
   }
@@ -541,6 +554,28 @@ auth.onAuthStateChanged(user => {
     alert("Erro ao excluir paciente: " + error.message);
   }
 }
+
+  async function excluirAnalise(analiseId) {
+    if (!pacienteAtivo) return;
+
+    // Pede confirmação para evitar toques acidentais
+    const confirmacao = confirm("Tem certeza que deseja excluir APENAS esta análise?");
+    if (!confirmacao) return;
+
+    try {
+      // Vai direto no documento exato daquela análise e deleta
+      await db.collection('pacientes')
+        .doc(pacienteAtivo.id)
+        .collection('analises')
+        .doc(analiseId)
+        .delete();
+      
+      // O onSnapshot vai atualizar a tela sozinho, então não precisamos fazer mais nada!
+    } catch (error) {
+      console.error("Erro ao excluir análise:", error);
+      alert("Erro ao excluir análise: " + error.message);
+    }
+  }
 
   async function salvarAnaliseMoyers() {
     if (!pacienteAtivo || !ultimoResultadoMoyers) return;
