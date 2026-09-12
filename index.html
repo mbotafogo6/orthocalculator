@@ -177,7 +177,12 @@
   </main>
 
   <!-- NAVEGAÇÃO INFERIOR -->
+<!-- NAVEGAÇÃO INFERIOR -->
   <nav class="bottom-nav">
+    <div class="nav-item active" onclick="switchTab('pacientes', this)">
+      <span class="nav-icon">📁</span>
+      Pacientes
+    </div>
     <div class="nav-item" onclick="switchTab('moyers', this)">
       <span class="nav-icon">🦷</span>
       Moyers
@@ -186,12 +191,7 @@
       <span class="nav-icon">📐</span>
       Bolton
     </div>
-    <div class="nav-item active" onclick="switchTab('pacientes', this)">
-      <span class="nav-icon">📁</span>
-      Pacientes
-    </div>
   </nav>
-
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyCQ482Mwhjq_mQiOgDolXk2XIdbkgnTkkE",
@@ -223,7 +223,7 @@
     }
   };
 
-  function switchTab(tabId, element = null) {
+ function switchTab(tabId, element = null) {
     document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     document.getElementById(tabId).classList.add('active');
@@ -231,11 +231,12 @@
     if(element) {
       element.classList.add('active');
     } else {
-      const index = tabId === 'moyers' ? 0 : (tabId === 'bolton' ? 1 : 2);
+      // Nova ordem: pacientes é o 0, moyers é o 1, bolton é o 2
+      const index = tabId === 'pacientes' ? 0 : (tabId === 'moyers' ? 1 : 2);
       document.querySelectorAll('.nav-item')[index].classList.add('active');
     }
   }
-
+  
   function toggleIncisivosSup() {
     const arcada = document.getElementById('arcada').value;
     document.getElementById('campoIncSup').style.display = (arcada === 'superior') ? 'block' : 'none';
