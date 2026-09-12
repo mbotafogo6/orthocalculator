@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#f4f7f6",
   "theme_color": "#1a365d",
-  "icons": [
+"icons": [
     {
       "src": "orthologo.png",
       "sizes": "192x192",
@@ -13,8 +13,7 @@
     },
     {
       "src": "orthologo.png",
-      "sizes": "512x512",
+      "sizes": "512x512 1024x1024",
       "type": "image/png"
     }
   ]
-}
