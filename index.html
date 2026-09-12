@@ -267,14 +267,12 @@ const firebaseConfig = {
   }
 
   // AUTENTICAÇÃO
-  auth.onAuthStateChanged(user => {
+auth.onAuthStateChanged(user => {
     usuarioLogado = user;
     if (user) {
-      document.getElementById('userStatus').innerText = "Doutor(a) conectado(a)";
       document.getElementById('btnLogin').innerText = "Sair";
       carregarPacientes();
     } else {
-      document.getElementById('userStatus').innerText = "Modo Offline / Desconectado";
       document.getElementById('btnLogin').innerText = "Entrar";
     }
   });
