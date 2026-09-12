@@ -545,25 +545,25 @@
   }
 
   // Função para gerar PDF
-  function gerarPDF() {
+function gerarPDF() {
     if (!pacienteAtivo) return;
 
-    // Se a biblioteca html2pdf não carregou, exibe aviso
     if (typeof html2pdf === 'undefined') {
-      alert("O gerador de PDF ainda está carregando. Tente novamente em alguns segundos ou verifique sua internet.");
+      alert("O gerador de PDF ainda está carregando. Tente novamente em alguns segundos.");
       return;
     }
 
     const conteudoPDF = document.createElement('div');
     conteudoPDF.style.padding = '30px';
     conteudoPDF.style.fontFamily = 'Arial, sans-serif';
-    conteudoPDF.style.color = '#000';
+    conteudoPDF.style.color = '#000000'; // Força texto preto
+    conteudoPDF.style.backgroundColor = '#ffffff'; // Força fundo branco geral
 
     conteudoPDF.innerHTML = `
       <div style="text-align: center; border-bottom: 2px solid #2b6cb0; margin-bottom: 20px; padding-bottom: 10px;">
         <h2 style="color: #2b6cb0; margin: 0;">OrthoCalc - Relatório Ortodôntico</h2>
       </div>
-      <div style="margin-bottom: 20px; font-size: 14px;">
+      <div style="margin-bottom: 20px; font-size: 14px; color: #2d3748;">
         <p><strong>Paciente:</strong> ${pacienteAtivo.nome}</p>
         <p><strong>Prontuário:</strong> ${pacienteAtivo.prontuario || 'Não informado'}</p>
         <p><strong>Data de Emissão:</strong> ${new Date().toLocaleDateString('pt-BR')}</p>
@@ -574,8 +574,21 @@
     const historicoContainer = document.createElement('div');
     historicoContainer.innerHTML = historicoAtual;
 
+    // Remove os botões de lixeira
     const botoesLixeira = historicoContainer.querySelectorAll('button');
     botoesLixeira.forEach(btn => btn.remove());
+
+    // CORREÇÃO: Força todas as caixinhas de histórico a ficarem com fundo branco e borda limpa no PDF
+    const itensTimeline = historicoContainer.querySelectorAll('.timeline-item');
+    itensTimeline.forEach(item => {
+      item.style.backgroundColor = '#f7fafc'; // Fundo cinza bem clarinho
+      item.style.color = '#2d3748';          // Letra escura
+      item.style.border = '1px solid #e2e8f0';
+      item.style.borderLeft = '4px solid #2b6cb0'; // Mantém a barrinha azul do lado
+      item.style.padding = '10px';
+      item.style.marginBottom = '10px';
+      item.style.borderRadius = '6px';
+    });
 
     conteudoPDF.appendChild(historicoContainer);
 
@@ -583,11 +596,10 @@
       margin:       10,
       filename:     `Prontuario_${pacienteAtivo.nome.replace(/\s+/g, '_')}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2 },
+      html2canvas:  { scale: 2, backgroundColor: '#ffffff' }, // Garante fundo branco no canvas
       jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
-    // Alerta o usuário que começou (o processo pode levar de 1 a 3 segundos)
     const btnPDF = document.getElementById('btnGerarPDF');
     const textoOriginal = btnPDF.innerText;
     btnPDF.innerText = "⏳ Gerando...";
@@ -604,6 +616,14 @@
     });
   }
 </script>
-
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('Service Worker registrado!', reg))
+        .catch(err => console.log('Erro ao registrar Service Worker:', err));
+    });
+  }
+</script>
 </body>
 </html>
