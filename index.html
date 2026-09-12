@@ -10,6 +10,9 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
+  <!-- Gerador de PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
   <style>
     /* RESET E BASE */
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
@@ -161,6 +164,9 @@
       <div id="historicoPaciente" style="margin-top: 15px;"></div>
 
       <button id="btnExcluirPaciente" class="save-btn" style="background-color: #e53e3e; display: none; margin-top: 10px;" onclick="excluirPaciente()">🗑️ Excluir Paciente</button>
+
+      <!-- NOVO BOTÃO AQUI -->
+      <button id="btnGerarPDF" class="save-btn" style="background-color: #d69e2e; display: none; margin-top: 10px;" onclick="gerarPDF()">📄 Baixar Prontuário em PDF</button>
 
       <hr style="margin: 25px 0; border: 0; border-top: 1px solid #e2e8f0;">
 
@@ -512,6 +518,53 @@
     }
   }
 
+
+function gerarPDF() {
+    if (!pacienteAtivo) return;
+
+    // 1. Criamos um container temporário e escondido com o layout do PDF
+    const conteudoPDF = document.createElement('div');
+    conteudoPDF.style.padding = '30px';
+    conteudoPDF.style.fontFamily = 'Arial, sans-serif';
+    conteudoPDF.style.color = '#000'; // Força letra preta mesmo no modo escuro
+
+    // 2. Montamos o cabeçalho do documento
+    conteudoPDF.innerHTML = `
+      <div style="text-align: center; border-bottom: 2px solid #2b6cb0; margin-bottom: 20px; padding-bottom: 10px;">
+        <h2 style="color: #2b6cb0; margin: 0;">OrthoCalc - Relatório Ortodôntico</h2>
+      </div>
+      <div style="margin-bottom: 20px; font-size: 14px;">
+        <p><strong>Paciente:</strong> ${pacienteAtivo.nome}</p>
+        <p><strong>Prontuário:</strong> ${pacienteAtivo.prontuario || 'Não informado'}</p>
+        <p><strong>Data de Emissão:</strong> ${new Date().toLocaleDateString('pt-BR')}</p>
+      </div>
+    `;
+
+    // 3. Copiamos o histórico atual da tela
+    const historicoAtual = document.getElementById('historicoPaciente').innerHTML;
+    const historicoContainer = document.createElement('div');
+    historicoContainer.innerHTML = historicoAtual;
+
+    // 4. Removemos as lixeiras do histórico copiado (para não saírem no PDF)
+    const botoesLixeira = historicoContainer.querySelectorAll('button');
+    botoesLixeira.forEach(btn => btn.remove());
+
+    // 5. Juntamos tudo
+    conteudoPDF.appendChild(historicoContainer);
+
+    // 6. Configurações de qualidade e tamanho do PDF
+    const opcoes = {
+      margin:       10,
+      filename:     `Prontuario_${pacienteAtivo.nome.replace(/\s+/g, '_')}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    // 7. Manda gerar e baixar!
+    html2pdf().set(opcoes).from(conteudoPDF).save();
+  }
+  
   async function salvarAnaliseMoyers() {
     if (!pacienteAtivo || !ultimoResultadoMoyers) return;
     try {
